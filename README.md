@@ -10,6 +10,7 @@ Welcome to the `yuzu` project, a flexible and modular algo-trading solution. :)
 
 ### Test dependencies
 - pytest `pip install -U pytest`
+- pytest-mock `pip install pytest-mock`
         
 
 ## Usage
