@@ -1,18 +1,15 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-from trade_managers.dummy_trade_manager import DummyTradeManager as DTM
+import time
+
+from trade_managers.t212_trade_manager import T212TradeManager as T212Trade
+from session_managers.t212_session_manager import T212SessionManager as T212Session
 from trade_manager_base import Order, Side
 
 if __name__ == "__main__":
-    manager = DTM()
+    broker_account = T212Session()
+    broker_account.login('tradingyuzu@gmail.com', '212TradingYuzu2020')
 
-    buy_order = Order("TKR", Side.BUY, 100, 0, 20)
-    sell_order = Order("TKR", Side.SELL, 100, 0, 20)
-    manager.trade(buy_order)
-    manager.trade(sell_order)
-
-    manager.cancel_order(5)
-    manager.close_position(3)
-    manager.close_all()
-    manager.cancel_all()
+    broker = T212Trade(broker_account)
+    broker.submit_order(Order(Side.BUY, '%24GERMAN30', 0.5, 12000))
