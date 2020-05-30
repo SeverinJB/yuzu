@@ -2,13 +2,8 @@
 # Any unauthorized usage forbidden
 
 class SessionManagerBase():
-	def __init__(self, username, password):
-		self.__username = username
-		self.__password = password
-
-	def login(self):
+	def login(self, username, password):
 		raise NotImplementedError
 
 	def logout(self):
 		raise NotImplementedError
-	
