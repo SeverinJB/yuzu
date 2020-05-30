@@ -1,1 +1,1 @@
-__all__ = ["trade_manager_base"]
+__all__ = ["trade_manager_base", "session_manager_base"]
