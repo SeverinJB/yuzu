@@ -9,7 +9,7 @@ class Side(enum.Enum):
    NEUTRAL = 3
 
 class Order:
-    def __init__(self, side, ticker, trade_size, open, stop = None, profit = None):
+    def __init__(self, ticker, side, trade_size, open, stop = None, profit = None):
         self.ticker_symbol = ticker
         self.open_price = open
         self.side = side
