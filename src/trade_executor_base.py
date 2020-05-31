@@ -17,11 +17,6 @@ class Order:
         self.stop_loss = stop
         self.take_profit = profit
 
-class Position:
-    def __init__(self, order):
-        self.trade_order = order
-        self.close_price = 0
-
 class TradeExecutorBase(object):
     def __init__(self):
         pass
