@@ -53,7 +53,17 @@ def test_login_sets_session_correctly(mocker):
     manager = Manager()
     manager.login('username', 'password')
 
-    assert manager.getSession() == mock_session_value
+    assert manager.get_session() == mock_session_value
+
+def test_get_headers_returns_headers(mocker):
+    expected_headers = {
+            'user-agent':
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 '
+                '(KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36'
+        }
+
+    manager = Manager()
+    assert manager.get_headers() == expected_headers
 
 def test_login_successfully_logs_in():
     correct_username = "tradingyuzu@gmail.com"

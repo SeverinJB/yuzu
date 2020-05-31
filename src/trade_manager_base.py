@@ -9,10 +9,10 @@ class Side(enum.Enum):
    NEUTRAL = 3
 
 class Order:
-    def __init__(self, ticker, trade_side, trade_size, stop, profit, open = None):
+    def __init__(self, ticker, side, trade_size, open, stop = None, profit = None):
         self.ticker_symbol = ticker
         self.open_price = open
-        self.side = trade_side
+        self.side = side
         self.size = trade_size
         self.stop_loss = stop
         self.take_profit = profit
@@ -32,12 +32,6 @@ class TradeManagerBase(object):
         self.__open_positions = {}
         self.__closed_positions = {}
 
-    def __buy(self, order):
-        raise NotImplementedError
-
-    def __sell(self, order):
-        raise NotImplementedError
-
     def close_position(self, id):
         raise NotImplementedError
 
@@ -50,9 +44,6 @@ class TradeManagerBase(object):
     def cancel_all(self):
         raise NotImplementedError
 
-    def trade(self, order):
-        if order.side == Side.BUY:
-            self.__buy(order)
-        elif order.side == Side.SELL:
-            self.__sell(order)
+    def submit_order(self, order):
+        raise NotImplementedError
 
