@@ -12,4 +12,4 @@ if __name__ == "__main__":
     broker_account.login('tradingyuzu@gmail.com', '212TradingYuzu2020')
 
     broker = T212Trade(broker_account)
-    broker.submit_order(Order(Side.BUY, '%24GERMAN30', 0.5, 12000))
+    response = broker.submit_order(Order(Side.SELL, '%24GERMAN30', 0.1, 11573))

@@ -16,7 +16,7 @@ class T212SessionManager(session_manager_base.SessionManagerBase):
                 '(KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36'
         }
 
-    def	__successfulResponse(self, response):
+    def	__successful_response(self, response):
         return "\"isValid\":true" in response.text
 
     def login(self, username, password):
@@ -38,9 +38,12 @@ class T212SessionManager(session_manager_base.SessionManagerBase):
             login_data['login[_token]'] = soup.find('input', attrs={'name': 'login[_token]'})['value']
             auth_page = self.__session.post(authenticate_url, data=login_data, headers=self.__headers)
 
-            return self.__successfulResponse(auth_page)
+            return self.__successful_response(auth_page)
         except Exception:
             return False
 
-    def getSession(self):
+    def get_session(self):
         return self.__session
+
+    def get_headers(self):
+        return self.__headers

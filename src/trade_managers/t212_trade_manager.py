@@ -6,71 +6,70 @@ from trade_manager_base import TradeManagerBase, Side
 class T212TradeManager(TradeManagerBase):
     def __init__(self, session_manager):
         super().__init__()
-        self.__base_url = 'https://demo.trading212.com/rest'
         self.__session_manager = session_manager
 
-    def _request(self, method, path, data=None, base_url=None, version='v2'):
-        base_url = base_url or self.__base_url
-        url = base_url + '/' + version + path
+    def __send_request(
+            self,
+            request_type,
+            path,
+            request_data = None,
+            base_url = 'https://demo.trading212.com/rest',
+            api_version = 'v2'):
 
-        headers = {
-            'user-agent':
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 '
-                '(KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36'
-        }
-
-        opts = {'headers': headers}
-
-        if method.upper() == 'GET':
-            opts['params'] = data
+        request_attributes = {'headers': self.__session_manager.get_headers()}
+        if request_type.upper() == 'GET':
+            request_attributes['params'] = request_data
         else:
-            opts['json'] = data
+            request_attributes['json'] = request_data
 
-        try:
-            response = self.__session_manager.getSession().request(method, url, **opts)
-            if response.text != '':
-                return response.json()
-        except Exception:
-            print('Response failed.')
+        request_url = base_url + '/' + api_version + path
+        response = self.__session_manager.get_session().request(
+            request_type, request_url, **request_attributes)
 
-    def get(self, path, data=None):
-        return self._request('GET', path, data)
+        return response
 
-    def post(self, path, data=None):
-        return self._request('POST', path, data)
+    def __get(self, path, data = None):
+        return self.__send_request('GET', path, data)
 
-    def patch(self, path, data=None):
-        return self._request('PATCH', path, data)
+    def __post(self, path, data = None):
+        return self.__send_request('POST', path, data)
 
-    def delete(self, path, data=None):
-        return self._request('DELETE', path, data)
+    def __patch(self, path, data = None):
+        return self.__send_request('PATCH', path, data)
+
+    def __delete(self, path, data = None):
+        return self.__send_request('DELETE', path, data)
 
     def submit_order(self, order):
         '''Open a position'''
         # TODO: Implement different order types.
 
-        url = '/pending-orders/entry-dep-limit-stop/' + order.ticker_symbol
-        params = {
+        # TODO: Check response consistent with request
+
+        path = '/pending-orders/entry-dep-limit-stop/' + order.ticker_symbol
+        order_details = {
             "notify": "NONE",
-            "targetPrice": order.open_price if order.side == Side.BUY else -order.open_price,
+            "targetPrice": order.open_price,
             "stopLoss": order.stop_loss,
             "takeProfit": order.take_profit,
-            'quantity': order.size,
+            'quantity': order.size if order.side == Side.BUY else -order.size,
         }
 
-        response = self.post(url, params)
-        return response
+        return self.__post(path, order_details)
 
     def cancel_order(self, order_id):
         '''Cancel an order'''
-        self.delete('/pending-orders/entry/{}'.format(order_id))
+        # TODO: Check response consistent with request
+        self.__delete('/pending-orders/entry/{}'.format(order_id))
 
     def cancel_all_orders(self):
+        # TODO: Check response consistent with request
         '''Cancel all open orders'''
-        self.delete('/pending-orders/cancel')
+        self.__delete('/pending-orders/cancel')
 
     # TODO: Implement
     # def close_all_positions(self):
+        # TODO: Check response consistent with request
     # 	'''Liquidates all open positions at market price'''
     # 	self.delete('/open-positions/close-all/')
     # 	# return [Order(o) for o in resp]
