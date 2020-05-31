@@ -1,9 +1,9 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-from trade_manager_base import TradeManagerBase, Side
+from trade_executor_base import TradeExecutorBase, Side
 
-class T212TradeManager(TradeManagerBase):
+class T212TradeExecutor(TradeExecutorBase):
     def __init__(self, session_manager):
         super().__init__()
         self.__session_manager = session_manager

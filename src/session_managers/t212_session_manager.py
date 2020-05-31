@@ -35,8 +35,10 @@ class T212SessionManager(session_manager_base.SessionManagerBase):
             login_page = self.__session.get(login_url, headers=self.__headers)
             soup = BeautifulSoup(login_page.content, 'html.parser')
 
-            login_data['login[_token]'] = soup.find('input', attrs={'name': 'login[_token]'})['value']
-            auth_page = self.__session.post(authenticate_url, data=login_data, headers=self.__headers)
+            login_data['login[_token]'] = \
+                soup.find('input', attrs={'name': 'login[_token]'})['value']
+            auth_page = \
+                self.__session.post(authenticate_url, data=login_data, headers=self.__headers)
 
             return self.__successful_response(auth_page)
         except Exception:

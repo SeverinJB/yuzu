@@ -22,15 +22,9 @@ class Position:
         self.trade_order = order
         self.close_price = 0
 
-class TradeManagerBase(object):
+class TradeExecutorBase(object):
     def __init__(self):
-        '''
-        Contructor
-        '''
-
-        self.__pending_orders = {}
-        self.__open_positions = {}
-        self.__closed_positions = {}
+        pass
 
     def close_position(self, id):
         raise NotImplementedError
