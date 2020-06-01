@@ -7,6 +7,11 @@ class Position(object):
         self.order = order
         self.trade_id = id
 
+    def __eq__(self, other):
+        return self.strategy == other.strategy \
+               and self.trade_id == other.trade_id \
+               and self.order == other.order
+
 class PositionsManager(object):
     def __init__(self):
         self.__open_positions = {} # ticker as key

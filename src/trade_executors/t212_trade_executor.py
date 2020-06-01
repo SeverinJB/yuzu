@@ -55,6 +55,7 @@ class T212TradeExecutor(TradeExecutorBase):
             'quantity': order.size if order.side == Side.BUY else -order.size,
         }
 
+        # TODO: confront with return requirements in trade_executor_base!
         return self.__post(path, order_details)
 
     def cancel_order(self, order_id):

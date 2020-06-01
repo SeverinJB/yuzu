@@ -1,45 +1,44 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-import enum
+from positions_manager import Position
+from trade_executor_base import Order
 
-class Position(object):
-    def __init__(self, strategy_name, order, id):
-        self.strategy = strategy_name
-        self.order = order
-        self.trade_id = id
+# TODO: Add possibility of closing only part of position
 
 class TradeManager(object):
-    def __init__(self, trade_executor, strategy_manager):
+    def __init__(self, trade_executor, strategy_manager, positions_manager):
         self.__executor = trade_executor
         self.__strategy_manager = strategy_manager
-        self.opened_positions = {}
-        self.pending_orders = {}
-
-    def __update_orders(self):
-        # TODO: Find a way to check if some pending orders have been executed a
-        # nd/or if stop loss/tp has been triggered
-        return
+        self.__positions_manager = positions_manager
 
     def __close_positions(self):
-        for position in self.opened_positions:
-            strategy = self.__strategy_manager.get_strategy(position.strategy)
-            if strategy.position_must_be_closed(position.order):
-                self.__executor.close_position(position.id)
-                del self.opened_positions[position.order.ticker_symbol]
+        for strategy in self.__strategy_manager.get_strategies():
+            for ticker in strategy.get_exit_signals():
+                if self.__positions_manager.open_position_exists_for_ticker(ticker):
+                    trade_id = self.__positions_manager.get_open_position(ticker).trade_id
+                    if self.__executor.close_position(trade_id):
+                        self.__positions_manager.close_position(ticker)
+                    else:
+                        # TODO: Decide what to do if position cannot be closed
+                        raise Exception("TradeManager: failed to close position")
 
     def __open_positions(self):
         for strategy in self.__strategy_manager.get_strategies():
-            orders_to_open = strategy.get_orders_to_be_opened()
-            for order in orders_to_open:
+            for order in strategy.get_entry_signals():
                 ticker = order.ticker_symbol
-                if not ticker in self.opened_positions and not ticker in self.pending_orders:
-                    order_id = self.__executor.submit_order(order)
-                    self.opened_positions[ticker] = Position(strategy.get_name(), order, order_id)
-                    # TODO add it to pending orders instead if not market order
+                if not self.__positions_manager.ticker_is_busy(ticker):
+                    # TODO: adapt to return type of submit_order()
+                    order_response = self.__executor.submit_order(order)
+                    if order_response is not None:
+                        # TODO: distinguish between open positions and pending orders
+                        self.__positions_manager.open_position(
+                            Position(strategy.get_name(), order_response.order, order_response.id))
+                    else:
+                        # TODO: Decide what to do if position cannot be opened
+                        raise Exception("TradeManager: failed to open position")
 
     def trade(self):
-        self.__update_orders()
+        self.__positions_manager.update_positions()
         self.__close_positions()
         self.__open_positions()
-        # TODO: Add possibility of closing only part of position
