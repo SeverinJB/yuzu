@@ -17,22 +17,12 @@ class Order:
         self.stop_loss = stop
         self.take_profit = profit
 
-class Position:
-    def __init__(self, order):
-        self.trade_order = order
-        self.close_price = 0
-
-class TradeManagerBase(object):
+class TradeExecutorBase(object):
     def __init__(self):
-        '''
-        Contructor
-        '''
-
-        self.__pending_orders = {}
-        self.__open_positions = {}
-        self.__closed_positions = {}
+        pass
 
     def close_position(self, id):
+        # Must return a bool indicating whether or not the closure was successful
         raise NotImplementedError
 
     def cancel_order(self, id):
@@ -45,5 +35,7 @@ class TradeManagerBase(object):
         raise NotImplementedError
 
     def submit_order(self, order):
+        # must return an order object which contains the onfo of the performed order
+        # if something goes wrong, it must return None
         raise NotImplementedError
 
