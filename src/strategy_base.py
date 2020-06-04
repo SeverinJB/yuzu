@@ -2,10 +2,10 @@
 # Any unauthorized usage forbidden
 
 class StrategyBase(object):
-    def __init__(self, data_source, positions_manager):
-        self.__name = "strategy_base"
-        self.__data_source = data_source
-        self.__positions_manager = positions_manager
+    def __init__(self, data_analyzer, positions_manager):
+        self.name = "strategy_base"
+        self.data_analyzer = data_analyzer
+        self.positions_manager = positions_manager
 
     def get_exit_signals(self):
         # returns a (possibly empty) list of exit signals, in forms of ticker
@@ -16,4 +16,4 @@ class StrategyBase(object):
         return
 
     def get_name(self):
-        return self.__name
+        return self.name
