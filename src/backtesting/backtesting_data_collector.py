@@ -18,10 +18,8 @@ class BacktestingDataCollector():
 
         dataframe = dataframe[['adjClose', 'adjHigh','adjLow', 'adjOpen', 'adjVolume']]
         dataframe.columns = ['close', 'high', 'low', 'open', 'volume']
-        dataframe = dataframe[['open', 'high', 'low', 'close', 'volume']]
 
         dataframe.sort_index(inplace=True)
         data = bt.feeds.PandasData(dataname=dataframe)
 
         return data
-

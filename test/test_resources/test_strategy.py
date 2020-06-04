@@ -3,7 +3,7 @@
 
 from strategy_base import StrategyBase
 
-class StrategyTest(StrategyBase):
+class TestStrategy(StrategyBase):
     def __init__(self, data_analyzer, positions_manager=None):
         super().__init__(data_analyzer, positions_manager)
         self.name = "strategy_test"
