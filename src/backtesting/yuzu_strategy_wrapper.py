@@ -3,6 +3,7 @@
 
 import backtrader as bt
 
+from trade_objects import Side
 from data_analyzers.back_trader_data_analyzer import BackTraderDataAnalyzer
 
 class YuzuStrategyWrapper(bt.Strategy):
@@ -32,13 +33,16 @@ class YuzuStrategyWrapper(bt.Strategy):
         if self.order:
             return
 
-        # Check if we are in the market
-        if not self.position:
-            if self.__yuzu_strategy.get_entry_signals():
-                self.order = self.buy()
-        else:
-            if self.__yuzu_strategy.get_exit_signals():
-                self.order = self.sell()
+        trade_signals = self.__yuzu_strategy.get_trade_signals()
+        if not trade_signals:
+            return
+
+        assert len(trade_signals) == 1
+        signal = trade_signals[0]
+        if not self.position and signal.order.side == Side.BUY:
+            self.order = self.buy()
+        elif self.position and signal.order.side == Side.SELL:
+            self.order = self.sell()
 
     def stop(self):
         self.__log('(MA Period %2d) Ending Value %.2f' %

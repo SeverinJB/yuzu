@@ -8,7 +8,7 @@ class PositionsManager(object):
         self.__open_positions = {} # ticker as key
         self.__pending_orders = {} # ticker as key
 
-    def update_positions(self):
+    def update_positions(self, broker):
         # TODO: Implement to update pending orders and postitions with triggered sl/tp
         pass
 

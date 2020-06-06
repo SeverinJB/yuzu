@@ -3,8 +3,6 @@
 
 from positions_manager import Position
 
-# TODO: Add possibility of closing only part of position
-
 class TradeManager(object):
     def __init__(self, trade_executor, strategy_manager, positions_manager):
         self.__executor = trade_executor
