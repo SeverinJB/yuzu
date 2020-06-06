@@ -2,18 +2,19 @@
 # Any unauthorized usage forbidden
 
 class StrategyBase(object):
-    def __init__(self, data_analyzer, positions_manager):
+    def __init__(self, data_analyzer, positions_manager, tickers=None):
         self.name = "strategy_base"
         self.data_analyzer = data_analyzer
         self.positions_manager = positions_manager
+        self.tickers = tickers if tickers else []
 
-    def get_exit_signals(self):
-        # returns a (possibly empty) list of exit signals, in forms of ticker
-        return
+    def __get_open_positions(self):
+        # TODO: write test for this method
+        return self.positions_manager.get_open_positons_for_strategy(self.name)
 
-    def get_entry_signals(self):
-        # return a (possibly empty) list of entry signals in forms of orders to execute
-        return
+    def get_trade_signals(self):
+        # Returns a list of signals
+        raise NotImplementedError
 
     def get_name(self):
         return self.name

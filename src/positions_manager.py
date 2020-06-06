@@ -1,16 +1,7 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-class Position(object):
-    def __init__(self, strategy_name, order, id):
-        self.strategy = strategy_name
-        self.order = order
-        self.trade_id = id
-
-    def __eq__(self, other):
-        return self.strategy == other.strategy \
-               and self.trade_id == other.trade_id \
-               and self.order == other.order
+from trade_objects import Position
 
 class PositionsManager(object):
     def __init__(self):
