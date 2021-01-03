@@ -19,7 +19,7 @@ class TradeExecutorBase(object):
         raise NotImplementedError
 
     def submit_order(self, order):
-        # must return an order object which contains the onfo of the performed order
+        # must return an order object which contains the info of the performed order
         # if something goes wrong, it must return None
         raise NotImplementedError
 

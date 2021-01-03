@@ -11,6 +11,7 @@ Welcome to the `yuzu` project, a flexible and modular algo-trading solution. :)
 - backtrader 1.9.75.123: `pip install backtrader[plotting]`
 - pandas: `pip install pandas`
 - tiingo 0.12.0 `pip install tiingo`
+- websocket 0.57.0 `pip install websocket-client`
 
 ### Test dependencies
 - pytest `pip install -U pytest`

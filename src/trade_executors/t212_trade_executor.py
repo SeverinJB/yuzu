@@ -1,7 +1,8 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-from trade_executor_base import TradeExecutorBase, Side
+from trade_executor_base import TradeExecutorBase
+from trade_objects import Side
 
 class T212TradeExecutor(TradeExecutorBase):
     def __init__(self, session_manager):
@@ -49,7 +50,7 @@ class T212TradeExecutor(TradeExecutorBase):
         path = '/pending-orders/entry-dep-limit-stop/' + order.ticker_symbol
         order_details = {
             "notify": "NONE",
-            "targetPrice": order.open_price,
+            "targetPrice": order.price,
             "stopLoss": order.stop_loss,
             "takeProfit": order.take_profit,
             'quantity': order.size if order.side == Side.BUY else -order.size,
