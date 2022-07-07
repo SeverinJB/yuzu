@@ -17,7 +17,8 @@ class T212TradeExecutor(TradeExecutorBase):
             base_url = 'https://demo.trading212.com/rest',
             api_version = 'v2'):
 
-        request_attributes = {'headers': self.__session_manager.get_headers()}
+        request_attributes = {'headers': self.__session_manager.get_headers(),
+                              'cookies': self.__session_manager.get_session().cookies.get_dict()}
         if request_type.upper() == 'GET':
             request_attributes['params'] = request_data
         else:

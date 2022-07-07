@@ -39,3 +39,4 @@ class T212DataSource(DataSourceBase):
         data = self.__clean_data(response.json()['candles'][0]['result'])
 
         return data
+

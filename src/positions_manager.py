@@ -39,7 +39,7 @@ class PositionsManager(object):
     def open_position(self, position):
         ticker = position.order.ticker_symbol
         if self.ticker_is_busy(ticker):
-            raise Exception("PositionsManager: Trying to open position for alredy busy ticker!")
+            raise Exception("PositionsManager: Trying to open position for already busy ticker!")
 
         self.__open_positions[ticker] = position
 

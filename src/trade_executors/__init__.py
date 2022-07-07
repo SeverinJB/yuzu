@@ -1,4 +1,4 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-__all__ = ["t212_trade_executor.py"]
+__all__ = ["alpaca_trade_executor","t212_trade_executor"]

@@ -14,19 +14,22 @@ class StrategyA(StrategyBase):
 
     def __data(self):
         self.df = self.data_analyzer.get_data('GOOG')
-        self.sma = SMA.get_indicator(self, self.df, 50, 200)
+
+        # self.sma = SMA.get_indicator(self, self.df, 50, 200)
 
     def get_trade_signals(self):
-        order = Order('Fake', Side.BUY, 10)
+        #order = Order('Fake', Side.BUY, 10)
 
         self.__data()
 
-        if self.sma['bid'].iat[-1] > self.sma['sma_fast'].iat[-1]:
-            print("BIGGER", self.sma['bid'].iat[-1], self.sma['sma_fast'].iat[-1])
+        #if self.sma['bid'].iat[-1] > self.sma['sma_fast'].iat[-1]:
+            #print("BIGGER", self.sma['bid'].iat[-1], self.sma['sma_fast'].iat[-1])
             #order = Order('GOOG', Side.SELL, 0.1, price=self.sma['bid'].iat[-1])
 
-        elif self.sma['bid'].iat[-1] < self.sma['sma_fast'].iat[-1]:
-            print("SMALLER", self.sma['bid'].iat[-1], self.sma['sma_fast'].iat[-1])
+        #elif self.sma['bid'].iat[-1] < self.sma['sma_fast'].iat[-1]:
+            #print("SMALLER", self.sma['bid'].iat[-1], self.sma['sma_fast'].iat[-1])
             #order = Order('GOOG', Side.SELL, 0.1, price=self.sma['bid'].iat[-1])
+
+        order = Order('GOOG', Side.SELL, 0.1, price=self.df['high'].iat[-1])
 
         return [Signal(order, False)]
