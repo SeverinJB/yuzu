@@ -2,7 +2,6 @@
 # Any unauthorized usage forbidden
 
 from alpaca_trade_api.rest import TimeFrame
-import pandas as pd
 
 from data_source_base import DataSourceBase
 
@@ -19,10 +18,7 @@ class AlpacaDataSource(DataSourceBase):
 
         return data
 
-    def get_data(self, ticker):
-        now = pd.Timestamp.now(tz='America/New_York').floor('1min')
-        start = (now - pd.Timedelta('1day')).strftime('%Y-%m-%dT%H:%M:%SZ')
-        end = (now).strftime('%Y-%m-%dT%H:%M:%SZ')
+    def get_data(self, ticker, start, end):
         response = self.session_manager.get_session().get_bars(ticker, TimeFrame.Minute,
                                                                start, end,
                                                                adjustment='raw')

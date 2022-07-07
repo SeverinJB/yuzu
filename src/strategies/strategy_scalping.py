@@ -19,15 +19,15 @@ class StrategyScalping(StrategyBase):
 
         now = pd.Timestamp.now(tz='America/New_York').floor('1min')
         market_open = now.replace(hour=9, minute=30)
-        yesterday = (now - pd.Timedelta('1day')).strftime('%Y-%m-%dT%H:%M:%SZ')
-        today = (now).strftime('%Y-%m-%dT%H:%M:%SZ')
+        start = (now - pd.Timedelta('1day')).strftime('%Y-%m-%dT%H:%M:%SZ')
+        end = (now).strftime('%Y-%m-%dT%H:%M:%SZ')
         tomorrow = (now + pd.Timedelta('1day')).strftime('%Y-%m-%d')
         while 1:
             # at inception this results sometimes in api errors. this will work
             # around it. feel free to remove it once everything is stable
             try:
                 print('Hello')
-                data = data_source.get_data(symbol)
+                data = data_source.get_data(symbol, start, end)
                 print(data)
                 break
             except:

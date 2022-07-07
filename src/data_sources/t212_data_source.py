@@ -26,7 +26,7 @@ class T212DataSource(DataSourceBase):
         return clean_data
 
 
-    def get_data(self, ticker = 'AAPL'):
+    def get_data(self, ticker, start, end):
         request_attributes = {'headers': self.session_manager.get_headers()}
         request_attributes['json'] = {'candles': [{'ticker': ticker, 'period': 'ONE_MINUTE',
                                                    'size': 500, 'includeFake': 'true'}]}
