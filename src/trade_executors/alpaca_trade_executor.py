@@ -12,7 +12,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
     def __send_request(self):
         raise NotImplementedError
 
-    def submit_order(self, order):
+    async def submit_order(self, order):
         self.__session_manager.get_session().submit_order(
             symbol='SPY',
             side='buy',

@@ -1,23 +1,17 @@
-import alpaca_trade_api as alpaca
-import asyncio
+# Copyright Burg&Biondi 2020
+# Any unauthorized usage forbidden
+
 import pandas as pd
 import pytz
-import sys
 import logging
-import time
-
-from alpaca_trade_api import Stream
-from alpaca_trade_api.common import URL
-from alpaca_trade_api.rest import TimeFrame
 
 logger = logging.getLogger()
 
-ALPACA_API_KEY = 'PKDCTVKOSWRFQGAUS8CY'
-ALPACA_SECRET_KEY = 'Uhw8C9bX5ZXMX8eHfQuvKkMqgjjP6Rk0JLPzDQpp'
+from strategy_base import StrategyBase
 
-class ScalpAlgo:
-    def __init__(self, api, symbol, lot):
-        self._api = api
+class StrategyScalping(StrategyBase):
+    def __init__(self, data_source, symbol, lot, api):
+        self._api = api.get_session()
         self._symbol = symbol
         self._lot = lot
         self._bars = []
@@ -25,16 +19,15 @@ class ScalpAlgo:
 
         now = pd.Timestamp.now(tz='America/New_York').floor('1min')
         market_open = now.replace(hour=9, minute=30)
-        yesterday = (now - pd.Timedelta('1day')).strftime('%Y-%m-%dT%H:%M:%SZ')
-        today = (now).strftime('%Y-%m-%dT%H:%M:%SZ')
+        start = (now - pd.Timedelta('1day')).strftime('%Y-%m-%dT%H:%M:%SZ')
+        end = (now).strftime('%Y-%m-%dT%H:%M:%SZ')
         tomorrow = (now + pd.Timedelta('1day')).strftime('%Y-%m-%d')
         while 1:
             # at inception this results sometimes in api errors. this will work
             # around it. feel free to remove it once everything is stable
             try:
                 print('Hello')
-                data = api.get_bars(symbol, TimeFrame.Minute, yesterday, today,
-                                    adjustment='raw').df
+                data = data_source.get_data(symbol, start, end)
                 print(data)
                 break
             except:
@@ -216,69 +209,3 @@ class ScalpAlgo:
     def _transition(self, new_state):
         self._l.info(f'transition from {self._state} to {new_state}')
         self._state = new_state
-
-
-def main(args):
-    stream = Stream(ALPACA_API_KEY,
-                    ALPACA_SECRET_KEY,
-                    base_url=URL('https://paper-api.alpaca.markets'),
-                    data_feed='iex')  # <- replace to sip for PRO subscription
-    api = alpaca.REST(key_id=ALPACA_API_KEY,
-                    secret_key=ALPACA_SECRET_KEY,
-                    base_url="https://paper-api.alpaca.markets")
-
-    fleet = {}
-    symbols = args.symbols
-    for symbol in symbols:
-        algo = ScalpAlgo(api, symbol, lot=args.lot)
-        fleet[symbol] = algo
-
-    async def on_bars(data):
-        if data.symbol in fleet:
-            fleet[data.symbol].on_bar(data)
-
-    for symbol in symbols:
-        stream.subscribe_bars(on_bars, symbol)
-
-    async def on_trade_updates(data):
-        logger.info(f'trade_updates {data}')
-        symbol = data.order['symbol']
-        if symbol in fleet:
-            fleet[symbol].on_order_update(data.event, data.order)
-
-    stream.subscribe_trade_updates(on_trade_updates)
-
-    async def periodic():
-        while True:
-            if not api.get_clock().is_open:
-                logger.info('exit as market is not open')
-                sys.exit(0)
-            await asyncio.sleep(30)
-            positions = api.list_positions()
-            for symbol, algo in fleet.items():
-                pos = [p for p in positions if p.symbol == symbol]
-                algo.checkup(pos[0] if len(pos) > 0 else None)
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.gather(
-        stream._run_forever(),
-        periodic(),
-    ))
-    loop.close()
-
-
-if __name__ == '__main__':
-    import argparse
-
-    fmt = '%(asctime)s:%(filename)s:%(lineno)d:%(levelname)s:%(name)s:%(message)s'
-    logging.basicConfig(level=logging.INFO, format=fmt)
-    fh = logging.FileHandler('console.log')
-    fh.setLevel(logging.INFO)
-    fh.setFormatter(logging.Formatter(fmt))
-    logger.addHandler(fh)
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('symbols', nargs='+')
-    parser.add_argument('--lot', type=float, default=2000)
-
-    main(parser.parse_args())

@@ -8,6 +8,7 @@ from session_managers.alpaca_session_manager import AlpacaSessionManager
 from trade_executors.alpaca_trade_executor import AlpacaTradeExecutor
 
 import logging
+import asyncio
 
 logger = logging.getLogger()
 
@@ -15,14 +16,11 @@ from positions_manager import PositionsManager
 from strategies_manager import StrategiesManager
 from trade_manager import TradeManager
 
-ALPACA_API_KEY = 'PKDCTVKOSWRFQGAUS8CY'
-ALPACA_SECRET_KEY = 'Uhw8C9bX5ZXMX8eHfQuvKkMqgjjP6Rk0JLPzDQpp'
+ALPACA_API_KEY = 'PKP2XRI6IAVERY1823KA'
+ALPACA_SECRET_KEY = '50kVJgGUTTZ2Qe0YJFSUGGIEk2FQq0WG72oh44Ut'
 
-if __name__ == "__main__":
-    #T212Session = T212SessionManager()
-    #T212Session.login("tradingyuzu@gmail.com", "212TradingYuzu2020")
-    #T212Trade = T212TradeExecuter(T212Session)
 
+async def main():
     fmt = '%(asctime)s:%(filename)s:%(lineno)d:%(levelname)s:%(name)s:%(message)s'
     logging.basicConfig(level=logging.INFO, format=fmt)
     fh = logging.FileHandler('console.log')
@@ -40,4 +38,8 @@ if __name__ == "__main__":
     tradeManager = TradeManager(AlpacaTrade, strategiesManager, positionsManager)
 
     while True:
-        tradeManager.trade()
+        await tradeManager.trade()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

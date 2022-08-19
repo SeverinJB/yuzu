@@ -4,18 +4,25 @@
 import pandas as pd
 import pytz
 import logging
+import asyncio
+import sys
 
 logger = logging.getLogger()
 
 from strategy_base import StrategyBase
+from trade_objects import Side, Order, Signal
 
 class StrategyScalping(StrategyBase):
     def __init__(self, data_source, symbol, lot, api):
         self._api = api.get_session()
+        self._stream = api.get_stream()
         self._symbol = symbol
         self._lot = lot
         self._bars = []
         self._l = logger.getChild(self._symbol)
+        self._datasource = data_source
+
+        self._datasource.subscribe_bars(self._symbol)
 
         now = pd.Timestamp.now(tz='America/New_York').floor('1min')
         market_open = now.replace(hour=9, minute=30)
@@ -26,9 +33,7 @@ class StrategyScalping(StrategyBase):
             # at inception this results sometimes in api errors. this will work
             # around it. feel free to remove it once everything is stable
             try:
-                print('Hello')
                 data = data_source.get_data(symbol, start, end)
-                print(data)
                 break
             except:
                 # make sure we get bars
@@ -37,6 +42,7 @@ class StrategyScalping(StrategyBase):
         self._bars = bars
 
         self._init_state()
+
 
     def _init_state(self):
         symbol = self._symbol
@@ -65,8 +71,10 @@ class StrategyScalping(StrategyBase):
     def _now(self):
         return pd.Timestamp.now(tz='America/New_York')
 
+
     def _outofmarket(self):
         return self._now().time() >= pd.Timestamp('15:55').time()
+
 
     def checkup(self, position):
         # self._l.info('periodic task')
@@ -82,15 +90,17 @@ class StrategyScalping(StrategyBase):
                 f'(current price = {last_price})')
             self._cancel_order()
 
-        if self._position is not None and self._outofmarket():
-            self._submit_sell(bailout=True)
+        #if self._position is not None and self._outofmarket():
+        #    self._submit_sell(bailout=True)
+
 
     def _cancel_order(self):
         if self._order is not None:
             self._api.cancel_order(self._order.id)
 
+
     def _calc_buy_signal(self):
-        mavg = self._bars.rolling(20).mean().close.values
+        mavg = self._bars.rolling(3).mean().close.values
         closes = self._bars.close.values
         if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
             self._l.info(
@@ -101,6 +111,7 @@ class StrategyScalping(StrategyBase):
             self._l.info(
                 f'closes[-2:] = {closes[-2:]}, mavg[-2:] = {mavg[-2:]}')
             return False
+
 
     def on_bar(self, bar):
         self._bars = self._bars.append(pd.DataFrame({
@@ -113,99 +124,23 @@ class StrategyScalping(StrategyBase):
 
         self._l.info(
             f'received bar start: {pd.Timestamp(bar.timestamp)}, close: {bar.close}, len(bars): {len(self._bars)}')
-        if len(self._bars) < 21:
+        if len(self._bars) < 4:
             return
         if self._outofmarket():
             return
         if self._state == 'TO_BUY':
             signal = self._calc_buy_signal()
             if signal:
-                self._submit_buy()
+                trade = self._api.get_latest_trade(self._symbol)
+                order = Order(self._symbol, Side.SELL, 0.1, price=trade)
 
-    def on_order_update(self, event, order):
-        self._l.info(f'order update: {event} = {order}')
-        if event == 'fill':
-            self._order = None
-            if self._state == 'BUY_SUBMITTED':
-                self._position = self._api.get_position(self._symbol)
-                self._transition('TO_SELL')
-                self._submit_sell()
-                return
-            elif self._state == 'SELL_SUBMITTED':
-                self._position = None
-                self._transition('TO_BUY')
-                return
-        elif event == 'partial_fill':
-            self._position = self._api.get_position(self._symbol)
-            self._order = self._api.get_order(order['id'])
-            return
-        elif event in ('canceled', 'rejected'):
-            if event == 'rejected':
-                self._l.warn(f'order rejected: current order = {self._order}')
-            self._order = None
-            if self._state == 'BUY_SUBMITTED':
-                if self._position is not None:
-                    self._transition('TO_SELL')
-                    self._submit_sell()
-                else:
-                    self._transition('TO_BUY')
-            elif self._state == 'SELL_SUBMITTED':
-                self._transition('TO_SELL')
-                self._submit_sell(bailout=True)
-            else:
-                self._l.warn(f'unexpected state for {event}: {self._state}')
+                return [Signal(order, False)]
 
-    def _submit_buy(self):
-        trade = self._api.get_latest_trade(self._symbol)
-        amount = int(self._lot / trade.price)
-        try:
-            order = self._api.submit_order(
-                symbol=self._symbol,
-                side='buy',
-                type='limit',
-                qty=amount,
-                time_in_force='day',
-                limit_price=trade.price,
-            )
-        except Exception as e:
-            self._l.info(e)
-            self._transition('TO_BUY')
-            return
 
-        self._order = order
-        self._l.info(f'submitted buy {order}')
-        self._transition('BUY_SUBMITTED')
+    async def get_trade_signals(self):
+        result = None
 
-    def _submit_sell(self, bailout=False):
-        params = dict(
-            symbol=self._symbol,
-            side='sell',
-            qty=self._position.qty,
-            time_in_force='day',
-        )
-        if bailout:
-            params['type'] = 'market'
+        if result is None:
+            return []
         else:
-            current_price = float(
-                self._api.get_latest_trade(
-                    self._symbol).price)
-            cost_basis = float(self._position.avg_entry_price)
-            limit_price = max(cost_basis + 0.01, current_price)
-            params.update(dict(
-                type='limit',
-                limit_price=limit_price,
-            ))
-        try:
-            order = self._api.submit_order(**params)
-        except Exception as e:
-            self._l.error(e)
-            self._transition('TO_SELL')
-            return
-
-        self._order = order
-        self._l.info(f'submitted sell {order}')
-        self._transition('SELL_SUBMITTED')
-
-    def _transition(self, new_state):
-        self._l.info(f'transition from {self._state} to {new_state}')
-        self._state = new_state
+            return result
