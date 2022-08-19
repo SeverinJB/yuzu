@@ -6,6 +6,9 @@ from data_sources.alpaca_data_source import AlpacaDataSource
 
 import asyncio
 import sys
+import logging
+
+logger = logging.getLogger()
 
 class StrategiesManager(object):
     def __init__(self, session_manager):
@@ -16,6 +19,8 @@ class StrategiesManager(object):
         # It could be a dictionary {"strategy_name" : strategy instance}
         #strategies = {"strategy_scalping": StrategyScalping(AlpacaDataSource(
         #    self.__session_manager)}
+
+        logger.info(f'Strategies Manager initiating strategies')
 
         strategies = {"strategy_scalping": StrategyScalping(AlpacaDataSource(
             self.__session_manager), 'AAPL', 2000, self.__session_manager)}

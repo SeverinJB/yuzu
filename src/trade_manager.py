@@ -1,9 +1,12 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
+import logging
+import pandas as pd
+
 from positions_manager import Position
 
-import asyncio
+logger = logging.getLogger()
 
 class TradeManager(object):
     def __init__(self, trade_executor, strategies_manager, positions_manager):
@@ -11,6 +14,8 @@ class TradeManager(object):
         self.__strategies_manager = strategies_manager
         self.__positions_manager = positions_manager
 
+    def _outofmarket(self):
+        return pd.Timestamp.now(tz='America/New_York').floor('1min').time() >= pd.Timestamp('15:55').time()
 
     async def __close_positions(self):
         for strategy in self.__strategy_manager.get_strategies():
@@ -41,12 +46,17 @@ class TradeManager(object):
 
 
     async def trade(self):
-        #self.__positions_manager.update_positions()
-        exit_orders, entry_orders = await self.__classify_signals(await
-                                                                   self.__collect_trade_signals())
+        logger.info(f'trade')
 
-        await self.__exit_positions(exit_orders)
-        await self.__enter_positions(entry_orders)
+        if self._outofmarket():
+            logger.info(f'Out of market')
+        else:
+            #self.__positions_manager.update_positions()
+            exit_orders, entry_orders = await self.__classify_signals(await
+                                                                       self.__collect_trade_signals())
+            print(f"Orders: {exit_orders} and {entry_orders}")
+            await self.__exit_positions(exit_orders)
+            await self.__enter_positions(entry_orders)
 
 
     async def __collect_trade_signals(self):

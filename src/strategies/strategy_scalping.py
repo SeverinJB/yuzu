@@ -33,7 +33,9 @@ class StrategyScalping(StrategyBase):
             # at inception this results sometimes in api errors. this will work
             # around it. feel free to remove it once everything is stable
             try:
+                logger.info(f'Receiving historic data')
                 data = data_source.get_data(symbol, start, end)
+                logger.info(f'Historic data received')
                 break
             except:
                 # make sure we get bars
@@ -100,7 +102,7 @@ class StrategyScalping(StrategyBase):
 
 
     def _calc_buy_signal(self):
-        mavg = self._bars.rolling(3).mean().close.values
+        mavg = self._bars.rolling(21).mean().close.values
         closes = self._bars.close.values
         if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
             self._l.info(
@@ -113,18 +115,22 @@ class StrategyScalping(StrategyBase):
             return False
 
 
-    def on_bar(self, bar):
-        self._bars = self._bars.append(pd.DataFrame({
-            'open': bar.open,
-            'high': bar.high,
-            'low': bar.low,
-            'close': bar.close,
-            'volume': bar.volume,
-        }, index=[pd.Timestamp(bar.timestamp, tz=pytz.UTC)]))
+    def on_bar(self, data):
+        self._l.info(f'on_bar')
 
-        self._l.info(
-            f'received bar start: {pd.Timestamp(bar.timestamp)}, close: {bar.close}, len(bars): {len(self._bars)}')
-        if len(self._bars) < 4:
+        for bar in data:
+            if bar["timestamp"] > self._bars.index.values[-1]:
+                self._bars = self._bars.append(pd.DataFrame({
+                    'open': bar["open"],
+                    'high': bar["high"],
+                    'low': bar["low"],
+                    'close': bar["close"],
+                    'volume': bar["volume"],
+                }, index=[pd.Timestamp(bar["timestamp"], tz=pytz.UTC)]))
+                self._l.info(
+                    f'received bar start: {pd.Timestamp(bar["timestamp"])}, close: {bar["close"]}, len(bars): {len(self._bars)}')
+
+        if len(self._bars) < 20:
             return
         if self._outofmarket():
             return
@@ -138,7 +144,9 @@ class StrategyScalping(StrategyBase):
 
 
     async def get_trade_signals(self):
-        result = None
+        self._l.info(f'get_trade_signals')
+        result = self.on_bar([{"open": 0, "high": 0, "low": 0, "close": 0, "volume": 0,
+                               "timestamp": pd.Timestamp.now()}])
 
         if result is None:
             return []

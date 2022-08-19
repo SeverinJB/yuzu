@@ -3,6 +3,7 @@
 
 import asyncio
 import logging
+import time
 from concurrent.futures import ProcessPoolExecutor
 
 from alpaca_trade_api.rest import TimeFrame
@@ -22,7 +23,7 @@ class AlpacaDataSource(DataSourceBase):
     def subscribe_bars(self, symbol):
         global call_api
         loop = asyncio.get_running_loop()
-        executor = ProcessPoolExecutor()
+        executor = ProcessPoolExecutor(max_workers=1)
 
         async def on_bars(data):
             print(data)
@@ -30,10 +31,9 @@ class AlpacaDataSource(DataSourceBase):
         def call_api():
             self.session_manager.get_stream().subscribe_bars(on_bars, symbol)
             self.session_manager.get_stream().run()
+            print(f'Subscribe Bars')
 
         loop.run_in_executor(executor, call_api)
-
-        print(f'Subscribe Bars')
 
         return None
 

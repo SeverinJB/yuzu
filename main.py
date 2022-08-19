@@ -16,8 +16,8 @@ from positions_manager import PositionsManager
 from strategies_manager import StrategiesManager
 from trade_manager import TradeManager
 
-ALPACA_API_KEY = 'PKP2XRI6IAVERY1823KA'
-ALPACA_SECRET_KEY = '50kVJgGUTTZ2Qe0YJFSUGGIEk2FQq0WG72oh44Ut'
+ALPACA_API_KEY = 'PKKPMD01L7WOTNX5Y62S'
+ALPACA_SECRET_KEY = 'l2TXXSIz2AIjkSmUmXltYwicIZiBNU6kDpJ2pVxE'
 
 
 async def main():
@@ -28,11 +28,18 @@ async def main():
     fh.setFormatter(logging.Formatter(fmt))
     logger.addHandler(fh)
 
+    logger.info(f'Test logger')
+
     AlpacaSession = AlpacaSessionManager()
     AlpacaSession.login(ALPACA_API_KEY, ALPACA_SECRET_KEY)
     AlpacaTrade = AlpacaTradeExecutor(AlpacaSession)
 
+    logger.info(f'Alpaca alive')
+
     strategiesManager = StrategiesManager(AlpacaSession)
+
+    logger.info(f'Strategies Manager alive')
+
     positionsManager = PositionsManager()
 
     tradeManager = TradeManager(AlpacaTrade, strategiesManager, positionsManager)
