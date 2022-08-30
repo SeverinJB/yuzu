@@ -14,47 +14,23 @@ class TradeManager(object):
         self.__strategies_manager = strategies_manager
         self.__positions_manager = positions_manager
 
+
     def _outofmarket(self):
         return pd.Timestamp.now(tz='America/New_York').floor('1min').time() >= pd.Timestamp('15:55').time()
 
-    async def __close_positions(self):
-        for strategy in self.__strategy_manager.get_strategies():
-            for ticker in strategy.get_exit_signals():
-                if self.__positions_manager.open_position_exists_for_ticker(ticker):
-                    trade_id = self.__positions_manager.get_open_position(ticker).trade_id
-                    if self.__executor.close_position(trade_id):
-                        self.__positions_manager.close_position(ticker)
-                    else:
-                        # TODO: Decide what to do if position cannot be closed
-                        raise Exception("TradeManager: failed to close position")
-
-
-    async def __open_positions(self):
-        for strategy in self.__strategy_manager.get_strategies():
-            for order in strategy.get_entry_signals():
-                ticker = order.ticker_symbol
-                if not self.__positions_manager.ticker_is_busy(ticker):
-                    # TODO: adapt to return type of submit_order()
-                    order_response = self.__executor.submit_order(order)
-                    if order_response is not None:
-                        # TODO: distinguish between open positions and pending orders
-                        self.__positions_manager.open_position(
-                            Position(strategy.get_name(), order_response.order, order_response.id))
-                    else:
-                        # TODO: Decide what to do if position cannot be opened
-                        raise Exception("TradeManager: failed to open position")
-
 
     async def trade(self):
-        logger.info(f'trade')
-
         if self._outofmarket():
             logger.info(f'Out of market')
+            # TODO: Implement bailout before market closure
+            # if self._position is not None and self._outofmarket():
+            #    self._submit_sell(bailout=True)
+
         else:
             #self.__positions_manager.update_positions()
+
             exit_orders, entry_orders = await self.__classify_signals(await
                                                                        self.__collect_trade_signals())
-            print(f"Orders: {exit_orders} and {entry_orders}")
             await self.__exit_positions(exit_orders)
             await self.__enter_positions(entry_orders)
 
@@ -103,8 +79,12 @@ class TradeManager(object):
                 return
             order_response = await self.__executor.submit_order(order)
 
+            logger.info(f'enter_position: {order_response}')
+
             if order_response is not None:
-                self.__positions_manager.open_position(order_response)
+                # self.__positions_manager.open_position(order_response)
+                pass
             else:
                 # TODO: Decide what to do if position cannot be opened
-                raise Exception("TradeManager: failed to enter position!")
+                # raise Exception("TradeManager: failed to enter position!")
+                pass

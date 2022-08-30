@@ -74,13 +74,7 @@ class StrategyScalping(StrategyBase):
         return pd.Timestamp.now(tz='America/New_York')
 
 
-    def _outofmarket(self):
-        return self._now().time() >= pd.Timestamp('15:55').time()
-
-
     def checkup(self, position):
-        # self._l.info('periodic task')
-
         now = self._now()
         order = self._order
         if (order is not None and
@@ -91,9 +85,6 @@ class StrategyScalping(StrategyBase):
                 f'canceling missed buy order {order.id} at {order.limit_price} '
                 f'(current price = {last_price})')
             self._cancel_order()
-
-        #if self._position is not None and self._outofmarket():
-        #    self._submit_sell(bailout=True)
 
 
     def _cancel_order(self):
@@ -116,25 +107,26 @@ class StrategyScalping(StrategyBase):
 
 
     def on_bar(self, data):
-        self._l.info(f'on_bar')
+        new_bar = False
 
         for bar in data:
-            if bar["timestamp"] > self._bars.index.values[-1]:
+            if pd.Timestamp(bar["timestamp"]) > self._bars.index.values[-1]:
                 self._bars = self._bars.append(pd.DataFrame({
-                    'open': bar["open"],
-                    'high': bar["high"],
-                    'low': bar["low"],
-                    'close': bar["close"],
-                    'volume': bar["volume"],
+                    'open': float(bar["open"]),
+                    'high': float(bar["high"]),
+                    'low': float(bar["low"]),
+                    'close': float(bar["close"]),
+                    'volume': float(bar["volume"]),
                 }, index=[pd.Timestamp(bar["timestamp"], tz=pytz.UTC)]))
                 self._l.info(
                     f'received bar start: {pd.Timestamp(bar["timestamp"])}, close: {bar["close"]}, len(bars): {len(self._bars)}')
 
+                new_bar = True
+
         if len(self._bars) < 20:
             return
-        if self._outofmarket():
-            return
-        if self._state == 'TO_BUY':
+
+        if (self._state == 'TO_BUY') & new_bar:
             signal = self._calc_buy_signal()
             if signal:
                 trade = self._api.get_latest_trade(self._symbol)
@@ -144,9 +136,7 @@ class StrategyScalping(StrategyBase):
 
 
     async def get_trade_signals(self):
-        self._l.info(f'get_trade_signals')
-        result = self.on_bar([{"open": 0, "high": 0, "low": 0, "close": 0, "volume": 0,
-                               "timestamp": pd.Timestamp.now()}])
+        result = self.on_bar(self._datasource.get_latest_bars())
 
         if result is None:
             return []
