@@ -1,4 +1,4 @@
-# Copyright Burg&Biondi 2020
+# Copyright Yuzu Trading 2022
 # Any unauthorized usage forbidden
 
 import enum

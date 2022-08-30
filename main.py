@@ -1,4 +1,4 @@
-# Copyright Burg&Biondi 2020
+# Copyright Yuzu Trading 2022
 # Any unauthorized usage forbidden
 
 # from session_managers.t212_session_manager import T212SessionManager
