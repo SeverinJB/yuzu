@@ -3,6 +3,7 @@
 
 import logging
 import pandas as pd
+import asyncio
 
 from positions_manager import Position
 
@@ -16,12 +17,19 @@ class TradeManager(object):
 
 
     def _outofmarket(self):
-        return pd.Timestamp.now(tz='America/New_York').floor('1min').time() >= pd.Timestamp('15:55').time()
+        opening_time = pd.Timestamp('09:30').time()
+        now = pd.Timestamp.now(tz='America/New_York').floor('1min').time()
+        closure_time = pd.Timestamp('16:00').time()
+
+        market_closed = (opening_time >= now) or (closure_time <= now)
+
+        return market_closed
 
 
     async def trade(self):
         if self._outofmarket():
             logger.info(f'Out of market')
+            await asyncio.sleep(60)
             # TODO: Implement bailout before market closure
             # if self._position is not None and self._outofmarket():
             #    self._submit_sell(bailout=True)

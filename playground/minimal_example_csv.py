@@ -28,7 +28,7 @@ def on_bars(bar):
 
     print(f'received bar: {data}')
 
-    with open(r'/Users/SeverinBurg/Documents/GitHub/yuzu/src/data_sources/alpaca_data.csv', 'a') as file:
+    with open(r'/data_sources/alpaca_data.csv', 'a') as file:
         writer = csv.DictWriter(file, fieldnames=field_names)
         writer.writerow(data)
         file.close()
@@ -36,7 +36,7 @@ def on_bars(bar):
 def get_latest_bars():
     data = []
 
-    with open(r'/Users/SeverinBurg/Documents/GitHub/yuzu/src/data_sources/alpaca_data.csv', 'r') as file:
+    with open(r'/data_sources/alpaca_data.csv', 'r') as file:
         reader = csv.DictReader(file, skipinitialspace=True)
 
         for line in reader:

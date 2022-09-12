@@ -28,20 +28,12 @@ async def main():
     fh.setFormatter(logging.Formatter(fmt))
     logger.addHandler(fh)
 
-    logger.info(f'Test logger')
-
     AlpacaSession = AlpacaSessionManager()
     AlpacaSession.login(ALPACA_API_KEY, ALPACA_SECRET_KEY)
     AlpacaTrade = AlpacaTradeExecutor(AlpacaSession)
 
-    logger.info(f'Alpaca alive')
-
     strategiesManager = StrategiesManager(AlpacaSession)
-
-    logger.info(f'Strategies Manager alive')
-
     positionsManager = PositionsManager()
-
     tradeManager = TradeManager(AlpacaTrade, strategiesManager, positionsManager)
 
     while True:

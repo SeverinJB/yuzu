@@ -4,8 +4,6 @@
 import pandas as pd
 import pytz
 import logging
-import asyncio
-import sys
 
 logger = logging.getLogger()
 
@@ -47,6 +45,8 @@ class StrategyScalping(StrategyBase):
 
 
     def _init_state(self):
+        # TODO - Should be handled by either position_manager(?)
+
         symbol = self._symbol
         order = [o for o in self._api.list_orders() if o.symbol == symbol]
         position = [p for p in self._api.list_positions()
@@ -75,6 +75,8 @@ class StrategyScalping(StrategyBase):
 
 
     def checkup(self, position):
+        # TODO - Should be handled by trade_manager
+
         now = self._now()
         order = self._order
         if (order is not None and
@@ -88,6 +90,8 @@ class StrategyScalping(StrategyBase):
 
 
     def _cancel_order(self):
+        # TODO - Should be handled by either trade_manager or position_manager
+
         if self._order is not None:
             self._api.cancel_order(self._order.id)
 
@@ -107,10 +111,16 @@ class StrategyScalping(StrategyBase):
 
 
     def on_bar(self, data):
+        # TODO Should data_sources objects handle data entirely?
+
         new_bar = False
 
         for bar in data:
-            if pd.Timestamp(bar["timestamp"]) > self._bars.index.values[-1]:
+            if (len(self._bars.index.values) > 0) and (pd.Timestamp(bar["timestamp"]) <= \
+                    self._bars.index.values[-1]):
+                pass
+
+            else:
                 self._bars = self._bars.append(pd.DataFrame({
                     'open': float(bar["open"]),
                     'high': float(bar["high"]),
