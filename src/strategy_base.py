@@ -2,7 +2,7 @@
 # Any unauthorized usage forbidden
 
 class StrategyBase(object):
-    def __init__(self, data_analyzer, positions_manager, tickers=None):
+    def __init__(self, positions_manager, data_analyzer=None, tickers=None):
         self.name = "strategy_base"
         self.data_analyzer = data_analyzer
         self.positions_manager = positions_manager

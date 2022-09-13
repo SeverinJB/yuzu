@@ -32,8 +32,8 @@ async def main():
     AlpacaSession.login(ALPACA_API_KEY, ALPACA_SECRET_KEY)
     AlpacaTrade = AlpacaTradeExecutor(AlpacaSession)
 
-    strategiesManager = StrategiesManager(AlpacaSession)
     positionsManager = PositionsManager()
+    strategiesManager = StrategiesManager(AlpacaSession, positionsManager)
     tradeManager = TradeManager(AlpacaTrade, strategiesManager, positionsManager)
 
     while True:

@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 import asyncio
 
-from positions_manager import Position
+from trade_objects import Position
 
 logger = logging.getLogger()
 
@@ -84,14 +84,12 @@ class TradeManager(object):
         for order in entry_orders:
             ticker = order.ticker_symbol
             if self.__positions_manager.ticker_is_busy(ticker):
-                return
-            order_response = await self.__executor.submit_order(order)
-
-            logger.info(f'enter_position: {order_response}')
+                raise Exception("PositionsManager: Trying to open position for busy ticker!")
+            else:
+                order_response = await self.__executor.submit_order(order)
 
             if order_response is not None:
-                # self.__positions_manager.open_position(order_response)
-                pass
+                self.__positions_manager.open_position(Position(order=order))
             else:
                 # TODO: Decide what to do if position cannot be opened
                 # raise Exception("TradeManager: failed to enter position!")

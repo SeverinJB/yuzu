@@ -11,8 +11,9 @@ import logging
 logger = logging.getLogger()
 
 class StrategiesManager(object):
-    def __init__(self, session_manager):
+    def __init__(self, session_manager, positions_manager):
         self.__session_manager = session_manager
+        self.__positions_manager = positions_manager
         self.__strategies = self.__select_strategies()
 
     def __select_strategies(self):
@@ -23,7 +24,7 @@ class StrategiesManager(object):
         logger.info(f'Strategies Manager initiating strategies')
 
         strategies = {"strategy_scalping": StrategyScalping(AlpacaDataSource(
-            self.__session_manager), 'AAPL', 2000, self.__session_manager)}
+            self.__session_manager), 'AAPL', 2000, self.__session_manager, self.__positions_manager)}
 
         # select strategies, instantiate one for each with the
         # data source and add them to strategies

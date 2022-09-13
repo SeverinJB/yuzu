@@ -22,7 +22,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
         amount = int(1000 / trade.price)
 
         try:
-            order = self._api.submit_order(
+            response = self._api.submit_order(
                 symbol=order.ticker_symbol,
                 side='buy',
                 type='limit',
@@ -30,8 +30,8 @@ class AlpacaTradeExecutor(TradeExecutorBase):
                 time_in_force='day',
                 limit_price=trade.price,
             )
-            logger.info(f'submitted buy {order}')
-            return order
+            logger.info(f'submitted buy {order.ticker_symbol}')
+            return response
 
         except Exception as e:
             logger.info(e)

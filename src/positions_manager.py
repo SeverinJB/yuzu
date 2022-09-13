@@ -1,7 +1,10 @@
 # Copyright Yuzu Trading 2022
 # Any unauthorized usage forbidden
 
-from trade_objects import Position
+import logging
+
+logger = logging.getLogger()
+
 
 class PositionsManager(object):
     def __init__(self):
@@ -38,10 +41,8 @@ class PositionsManager(object):
 
     def open_position(self, position):
         ticker = position.order.ticker_symbol
-        if self.ticker_is_busy(ticker):
-            raise Exception("PositionsManager: Trying to open position for already busy ticker!")
-
         self.__open_positions[ticker] = position
+        logger.info(f'enter_position: {position}')
 
     def close_position(self, ticker):
         if ticker in self.__open_positions:
