@@ -15,10 +15,26 @@ logger = logging.getLogger()
 class AlpacaDataSource(DataSourceBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
+        self.__session = self.session_manager.get_session()
 
+    def list_orders(self):
+        return self.__session.list_orders()
+
+    def list_positions(self):
+        return self.__session.list_positions()
+
+    def get_latest_trade(self, symbol):
+        return self.__session.get_latest_trade(symbol)
 
     def __clean_data(self, data):
         raise NotImplementedError
+
+
+    def get_data(self, ticker, start, end):
+        response = self.__session.get_bars(ticker, TimeFrame.Minute, start, end, adjustment='raw')
+        data = response.df
+
+        return data
 
 
     def subscribe_bars(self, symbol):
@@ -26,6 +42,7 @@ class AlpacaDataSource(DataSourceBase):
         loop = asyncio.get_running_loop()
         executor = ProcessPoolExecutor(max_workers=1)
 
+        # TODO: on_bars(bar) should be __clean_data(data)
         async def on_bars(bar):
             if bar:
                 field_names = ['open', 'high', 'low', 'close', 'volume', 'timestamp']
@@ -49,8 +66,6 @@ class AlpacaDataSource(DataSourceBase):
 
         loop.run_in_executor(executor, call_api)
 
-        return None
-
 
     def get_latest_bars(self):
         data = []
@@ -64,11 +79,3 @@ class AlpacaDataSource(DataSourceBase):
         return data
 
 
-    def get_data(self, ticker, start, end):
-        response = self.session_manager.get_session().get_bars(ticker, TimeFrame.Minute,
-                                                               start, end,
-                                                               adjustment='raw')
-
-        data = response.df
-
-        return data

@@ -37,7 +37,7 @@ def test_login_returns_true_on_successful_login(mocker):
 
     mocked_bs4_class = mocker.patch('session_managers.t212_session_manager.BeautifulSoup')
     mocked_soup = mocked_bs4_class.return_value
-    mocked_soup.find.return_value = {'value' : mock_login_token}
+    mocked_soup.find.return_value = {'value': mock_login_token}
 
     manager = Manager()
     assert manager.login(username, password)

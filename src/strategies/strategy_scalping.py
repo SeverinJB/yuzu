@@ -14,7 +14,6 @@ class StrategyScalping(StrategyBase):
     def __init__(self, data_source, symbol, lot, api, positions_manager=None):
         super().__init__(positions_manager)
         self._api = api.get_session()
-        self._stream = api.get_stream()
         self._symbol = symbol
         self._lot = lot
         self._bars = []
@@ -49,8 +48,8 @@ class StrategyScalping(StrategyBase):
         # TODO: Should be handled by position_manager(?)
 
         symbol = self._symbol
-        order = [o for o in self._api.list_orders() if o.symbol == symbol]
-        position = [p for p in self._api.list_positions()
+        order = [o for o in self._datasource.list_orders() if o.symbol == symbol]
+        position = [p for p in self._datasource.list_positions()
                     if p.symbol == symbol]
         self._order = order[0] if len(order) > 0 else None
         self._position = position[0] if len(position) > 0 else None
@@ -71,6 +70,7 @@ class StrategyScalping(StrategyBase):
                     self._l.warn(
                         f'state {self._state} mismatch order {self._order}')
 
+
     def _now(self):
         return pd.Timestamp.now(tz='America/New_York')
 
@@ -83,7 +83,7 @@ class StrategyScalping(StrategyBase):
         if (order is not None and
             order.side == 'buy' and now -
                 order.submitted_at.tz_convert(tz='America/New_York') > pd.Timedelta('2 min')):
-            last_price = self._api.get_latest_trade(self._symbol).price
+            last_price = self._datasource.get_latest_trade(self._symbol).price
             self._l.info(
                 f'canceling missed buy order {order.id} at {order.limit_price} '
                 f'(current price = {last_price})')
@@ -91,7 +91,7 @@ class StrategyScalping(StrategyBase):
 
 
     def _cancel_order(self):
-        # TODO: Should be handled by either trade_manager or position_manager
+        # TODO: Should be handled by either trade_executor
 
         if self._order is not None:
             self._api.cancel_order(self._order.id)
@@ -101,8 +101,7 @@ class StrategyScalping(StrategyBase):
         mavg = self._bars.rolling(21).mean().close.values
         closes = self._bars.close.values
 
-        #if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
-        if True:
+        if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
             self._l.info(
                 f'buy signal: closes[-2] {closes[-2]} < mavg[-2] {mavg[-2]} '
                 f'closes[-1] {closes[-1]} > mavg[-1] {mavg[-1]}')
@@ -120,7 +119,7 @@ class StrategyScalping(StrategyBase):
 
         for bar in data:
             if (len(self._bars.index.values) > 0) and (pd.Timestamp(bar["timestamp"]) <= \
-                    self._bars.index.values[-1]):
+                    pd.Timestamp(self._bars.index.values[-1])):
                 pass
             else:
                 self._bars = self._bars.append(pd.DataFrame({
@@ -138,19 +137,23 @@ class StrategyScalping(StrategyBase):
         if len(self._bars) < 20:
             return
 
-        if self.positions_manager.ticker_is_busy(self._symbol):
-            current_price = float(self._api.get_latest_trade(self._symbol))
+        # Error: Too many requests for list_positions
+        position = []  # [p for p in self._datasource.list_positions() if p.symbol == self._symbol]
+        self._position = position[0] if len(position) > 0 else None
+
+        if self._position is not None and self.positions_manager.ticker_is_busy(self._symbol):
+            current_price = float(self._datasource.get_latest_trade(self._symbol).price)
             cost_basis = float(self._position.avg_entry_price)
             limit_price = max(cost_basis + 0.01, current_price)
-            order = Order(self._symbol, Side.SELL, 0.1, price=limit_price)
+            order = Order(self._symbol, 'sell', 0.1, price=limit_price)
             self._l.info(f'exit position')
-            return [Signal(order, False)]
+            return [Signal(order, True)]
 
         elif new_bar and not self.positions_manager.ticker_is_busy(self._symbol):
             signal = self._calc_buy_signal()
             if signal:
-                trade = self._api.get_latest_trade(self._symbol)
-                order = Order(self._symbol, Side.SELL, 0.1, price=trade)
+                price = self._datasource.get_latest_trade(self._symbol).price
+                order = Order(self._symbol, 'buy', 0.1, price=price)
 
                 return [Signal(order, False)]
 

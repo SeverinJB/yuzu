@@ -4,7 +4,7 @@
 import pytest
 
 from positions_manager import PositionsManager
-from positions_manager import Position
+from trade_objects import Position
 
 def test_open_position_exists_for_ticker_returns_true_if_open_position_for_ticker_exists():
     ticker = 'MY_TICKER'
@@ -110,6 +110,7 @@ def test_open_position_opens_position(mocker):
 
     assert manager._PositionsManager__open_positions['TEST_TICKER'] == position
 
+# TODO: Update Position related test
 def test_open_position_raise_error_if_ticker_already_busy(mocker):
     mock_order = mocker.Mock()
     ticker = 'TEST_TICKER'

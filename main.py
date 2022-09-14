@@ -28,13 +28,13 @@ async def main():
     fh.setFormatter(logging.Formatter(fmt))
     logger.addHandler(fh)
 
-    AlpacaSession = AlpacaSessionManager()
-    AlpacaSession.login(ALPACA_API_KEY, ALPACA_SECRET_KEY)
-    AlpacaTrade = AlpacaTradeExecutor(AlpacaSession)
+    alpacaSession = AlpacaSessionManager()
+    alpacaSession.login(ALPACA_API_KEY, ALPACA_SECRET_KEY)
+    alpacaTrade = AlpacaTradeExecutor(alpacaSession)
 
     positionsManager = PositionsManager()
-    strategiesManager = StrategiesManager(AlpacaSession, positionsManager)
-    tradeManager = TradeManager(AlpacaTrade, strategiesManager, positionsManager)
+    strategiesManager = StrategiesManager(alpacaSession, positionsManager)
+    tradeManager = TradeManager(alpacaTrade, strategiesManager, positionsManager)
 
     while True:
         await tradeManager.trade()

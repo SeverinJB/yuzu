@@ -4,7 +4,7 @@
 import pytest
 
 from trade_manager import TradeManager
-from positions_manager import Position
+from trade_objects import Position
 
 # TODO: Add test for __update_orders()
 # TODO: Clean up test (refactor code duplication)

@@ -18,19 +18,18 @@ class AlpacaTradeExecutor(TradeExecutorBase):
 
 
     async def submit_order(self, order):
-        trade = self._api.get_latest_trade(order.ticker_symbol)
-        amount = int(1000 / trade.price)
+        amount = int(1000 / order.price)
 
         try:
             response = self._api.submit_order(
                 symbol=order.ticker_symbol,
-                side='buy',
+                side=order.side,
                 type='limit',
                 qty=amount,
                 time_in_force='day',
-                limit_price=trade.price,
+                limit_price=order.price,
             )
-            logger.info(f'submitted buy {order.ticker_symbol}')
+            logger.info(f'submitted order {order.ticker_symbol}')
             return response
 
         except Exception as e:
