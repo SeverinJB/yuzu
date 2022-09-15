@@ -27,8 +27,7 @@ class StrategyScalping(StrategyBase):
         mavg = data.rolling(21).mean().close.values
         closes = data.close.values
 
-        # if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
-        if True:
+        if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
             self._l.info(
                 f'buy signal: closes[-2] {closes[-2]} < mavg[-2] {mavg[-2]} '
                 f'closes[-1] {closes[-1]} > mavg[-1] {mavg[-1]}')
