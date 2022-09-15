@@ -13,6 +13,7 @@ from data_source_base import DataSourceBase
 
 logger = logging.getLogger()
 
+
 class AlpacaDataSource(DataSourceBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
@@ -33,16 +34,14 @@ class AlpacaDataSource(DataSourceBase):
     def __clean_data(self, data):
         raise NotImplementedError
 
-
     def get_historic_data(self, ticker, start, end):
         response = self.__session.get_bars(ticker, TimeFrame.Minute, start, end, adjustment='raw')
         data = response.df
 
         return data
 
-
     def subscribe_bars(self, symbol):
-        global call_api # "Can't pickle local object"
+        global call_api  # "Can't pickle local object"
         loop = asyncio.get_running_loop()
         executor = ProcessPoolExecutor(max_workers=1)
 
@@ -58,7 +57,7 @@ class AlpacaDataSource(DataSourceBase):
                         'volume': bar.volume,
                         'timestamp': pd.Timestamp(bar.timestamp)}
 
-                logger.info(f'new bar: {pd.Timestamp(bar["timestamp"])}, close: {bar.close}')
+                logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}')
 
                 with open(r'src/data_sources/alpaca_data.csv', 'a') as file:
                     writer = csv.DictWriter(file, fieldnames=field_names)
@@ -72,24 +71,29 @@ class AlpacaDataSource(DataSourceBase):
 
         loop.run_in_executor(executor, call_api)
 
-
-    def get_latest_bars(self, ticker):
-        data = self.__database.setdefault(ticker, [])
-
-        with open(r'src/data_sources/alpaca_data.csv', 'r') as file:
-            reader = csv.DictReader(file, skipinitialspace=True)
-            last_index = pd.Timestamp(self.__database[ticker].index.values[-1])
-
-            for bar in reader:
-                if not data or (pd.Timestamp(bar["timestamp"]) <= last_index):
-                    data.append(pd.DataFrame({
-                        'open': float(bar["open"]),
-                        'high': float(bar["high"]),
-                        'low': float(bar["low"]),
-                        'close': float(bar["close"]),
-                        'volume': float(bar["volume"]),
-                    }, index=[pd.Timestamp(bar["timestamp"], tz=pytz.UTC)]))
+    def __append_bar(self, data, bar):
+        data = data.append(pd.DataFrame({
+            'open': float(bar["open"]),
+            'high': float(bar["high"]),
+            'low': float(bar["low"]),
+            'close': float(bar["close"]),
+            'volume': float(bar["volume"]),
+        }, index=[pd.Timestamp(bar["timestamp"], tz=pytz.UTC)]))
 
         return data
 
+    def get_latest_bars(self, ticker):
+        with open(r'src/data_sources/alpaca_data.csv', 'r') as file:
+            reader = csv.DictReader(file, skipinitialspace=True)
 
+            for bar in reader:
+                if ticker not in self.__database.keys():
+                    self.__database[ticker] = pd.DataFrame(columns=['timestamp', 'open', 'high',
+                                                                    'low', 'close', 'volume'])
+                    self.__database[ticker].set_index('timestamp', inplace=True)
+                    self.__database[ticker] = self.__append_bar(self.__database[ticker], bar)
+                elif pd.Timestamp(bar["timestamp"]) \
+                        > pd.Timestamp(self.__database[ticker].index.values[-1]):
+                    self.__database[ticker] = self.__append_bar(self.__database[ticker], bar)
+
+        return self.__database[ticker]

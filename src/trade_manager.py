@@ -108,8 +108,8 @@ class TradeManager(object):
             #    self._submit_sell(bailout=True)
 
         else:
-            await self.__check_for_updates()
-            await self.__time_out_pending_orders()
+            # await self.__check_for_updates()
+            # await self.__time_out_pending_orders()
 
             trade_signals = await self.__collect_trade_signals()
             exit_orders, entry_orders = await self.__classify_signals(trade_signals)
