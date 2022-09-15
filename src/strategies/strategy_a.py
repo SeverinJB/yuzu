@@ -13,7 +13,7 @@ class StrategyA(StrategyBase):
         ### TODO: CLEAN UP
 
     def __data(self):
-        self.df = self.data_analyzer.get_data('GOOG')
+        self.df = self.data_analyzer.get_historic_data('GOOG')
 
         # self.sma = SMA.get_indicator(self, self.df, 50, 200)
 

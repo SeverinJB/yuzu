@@ -16,65 +16,16 @@ class StrategyScalping(StrategyBase):
         self.name = "strategy_scalping"
 
         self._symbol = symbol
-        self._bars = []
         self._l = logger.getChild(self._symbol)
         self._datasource = data_source
+        self._position = []
 
         self._datasource.subscribe_bars(self._symbol)
 
-        now = pd.Timestamp.now(tz='America/New_York').floor('1min')
-        market_open = now.replace(hour=9, minute=30)
-        start = (now - pd.Timedelta('1day')).strftime('%Y-%m-%dT%H:%M:%SZ')
-        end = (now).strftime('%Y-%m-%dT%H:%M:%SZ')
-        tomorrow = (now + pd.Timedelta('1day')).strftime('%Y-%m-%d')
-        while 1:
-            # at inception this results sometimes in api errors. this will work
-            # around it. feel free to remove it once everything is stable
-            try:
-                logger.info(f'Receiving historic data')
-                data = data_source.get_data(symbol, start, end)
-                logger.info(f'Historic data received')
-                break
-            except:
-                # make sure we get bars
-                pass
-        bars = data[market_open:]
-        self._bars = bars
 
-        self._init_state()
-
-
-    def _init_state(self):
-        # TODO: Should be handled by position_manager(?)
-
-        symbol = self._symbol
-        order = [o for o in self._datasource.list_orders() if o.symbol == symbol]
-        position = [p for p in self._datasource.list_positions()
-                    if p.symbol == symbol]
-        self._order = order[0] if len(order) > 0 else None
-        self._position = position[0] if len(position) > 0 else None
-        if self._position is not None:
-            if self._order is None:
-                self._state = 'TO_SELL'
-            else:
-                self._state = 'SELL_SUBMITTED'
-                if self._order.side != 'sell':
-                    self._l.warn(
-                        f'state {self._state} mismatch order {self._order}')
-        else:
-            if self._order is None:
-                self._state = 'TO_BUY'
-            else:
-                self._state = 'BUY_SUBMITTED'
-                if self._order.side != 'buy':
-                    self._l.warn(
-                        f'state {self._state} mismatch order {self._order}')
-
-
-
-    def _calc_buy_signal(self):
-        mavg = self._bars.rolling(21).mean().close.values
-        closes = self._bars.close.values
+    def _calc_buy_signal(self, data):
+        mavg = data.rolling(21).mean().close.values
+        closes = data.close.values
 
         if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
             self._l.info(
@@ -88,31 +39,10 @@ class StrategyScalping(StrategyBase):
 
 
     def analyse_data(self, data):
-        # TODO: Should data_sources objects handle data entirely?
-
-        new_bar = False
-
-        for bar in data:
-            if (len(self._bars.index.values) > 0) and (pd.Timestamp(bar["timestamp"]) <= \
-                    pd.Timestamp(self._bars.index.values[-1])):
-                pass
-            else:
-                self._bars = self._bars.append(pd.DataFrame({
-                    'open': float(bar["open"]),
-                    'high': float(bar["high"]),
-                    'low': float(bar["low"]),
-                    'close': float(bar["close"]),
-                    'volume': float(bar["volume"]),
-                }, index=[pd.Timestamp(bar["timestamp"], tz=pytz.UTC)]))
-                self._l.info(
-                    f'received bar start: {pd.Timestamp(bar["timestamp"])}, close: {bar["close"]}, len(bars): {len(self._bars)}')
-
-                new_bar = True
-
-        if len(self._bars) < 20:
+        if len(data) < 20:
             return
 
-        # Error: Too many requests for list_positions
+        # TODO - Fix error: Too many requests for list_positions
         position = []  # [p for p in self._datasource.list_positions() if p.symbol == self._symbol]
         self._position = position[0] if len(position) > 0 else None
 
@@ -120,21 +50,23 @@ class StrategyScalping(StrategyBase):
             current_price = float(self._datasource.get_latest_trade(self._symbol).price)
             cost_basis = float(self._position.avg_entry_price)
             limit_price = max(cost_basis + 0.01, current_price)
-            order = Order(self._symbol, 'sell', 0.1, price=limit_price)
+
+            # TODO: Closing order cannot have timeout time
+            order = Order(self._symbol, 'sell', 0.1, 120, price=limit_price)
             self._l.info(f'exit position')
             return [Signal(self.name, order, True)]
 
-        elif new_bar and not self.positions_manager.ticker_is_busy(self._symbol):
-            signal = self._calc_buy_signal()
+        elif not self.positions_manager.ticker_is_busy(self._symbol):
+            signal = self._calc_buy_signal(data)
             if signal:
                 price = self._datasource.get_latest_trade(self._symbol).price
-                order = Order(self._symbol, 'buy', 0.1, price=price)
+                order = Order(self._symbol, 'buy', 0.1, 120, price=price)
 
                 return [Signal(self.name, order, False)]
 
 
     async def get_trade_signals(self):
-        result = self.analyse_data(self._datasource.get_latest_bars())
+        result = self.analyse_data(self._datasource.get_latest_bars(self._symbol))
 
         if result is None:
             return []

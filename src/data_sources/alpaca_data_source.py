@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 import csv
 from concurrent.futures import ProcessPoolExecutor
+import pytz
 
 from alpaca_trade_api.rest import TimeFrame
 from data_source_base import DataSourceBase
@@ -16,6 +17,7 @@ class AlpacaDataSource(DataSourceBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
         self.__session = self.session_manager.get_session()
+        self.__database = {}  # Ticker is key
 
     # TODO: Must be removed. Handled by trade_executor
     def list_orders(self):
@@ -32,7 +34,7 @@ class AlpacaDataSource(DataSourceBase):
         raise NotImplementedError
 
 
-    def get_data(self, ticker, start, end):
+    def get_historic_data(self, ticker, start, end):
         response = self.__session.get_bars(ticker, TimeFrame.Minute, start, end, adjustment='raw')
         data = response.df
 
@@ -56,6 +58,8 @@ class AlpacaDataSource(DataSourceBase):
                         'volume': bar.volume,
                         'timestamp': pd.Timestamp(bar.timestamp)}
 
+                logger.info(f'new bar: {pd.Timestamp(bar["timestamp"])}, close: {bar.close}')
+
                 with open(r'src/data_sources/alpaca_data.csv', 'a') as file:
                     writer = csv.DictWriter(file, fieldnames=field_names)
                     writer.writerow(data)
@@ -69,14 +73,22 @@ class AlpacaDataSource(DataSourceBase):
         loop.run_in_executor(executor, call_api)
 
 
-    def get_latest_bars(self):
-        data = []
+    def get_latest_bars(self, ticker):
+        data = self.__database.setdefault(ticker, [])
 
         with open(r'src/data_sources/alpaca_data.csv', 'r') as file:
             reader = csv.DictReader(file, skipinitialspace=True)
+            last_index = pd.Timestamp(self.__database[ticker].index.values[-1])
 
-            for line in reader:
-                data.append(line)
+            for bar in reader:
+                if not data or (pd.Timestamp(bar["timestamp"]) <= last_index):
+                    data.append(pd.DataFrame({
+                        'open': float(bar["open"]),
+                        'high': float(bar["high"]),
+                        'low': float(bar["low"]),
+                        'close': float(bar["close"]),
+                        'volume': float(bar["volume"]),
+                    }, index=[pd.Timestamp(bar["timestamp"], tz=pytz.UTC)]))
 
         return data
 

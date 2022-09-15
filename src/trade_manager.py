@@ -86,6 +86,9 @@ class TradeManager(object):
         return signals
 
 
+    async def __check_for_updates(self):
+        raise NotImplementedError
+
     async def __time_out_pending_orders(self):
         now = self.__now()
         for position in self.__positions_manager.get_pending_orders().values():
@@ -105,8 +108,8 @@ class TradeManager(object):
             #    self._submit_sell(bailout=True)
 
         else:
+            await self.__check_for_updates()
             await self.__time_out_pending_orders()
-            #self.__positions_manager.update_positions()
 
             trade_signals = await self.__collect_trade_signals()
             exit_orders, entry_orders = await self.__classify_signals(trade_signals)

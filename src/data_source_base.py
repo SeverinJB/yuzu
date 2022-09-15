@@ -5,5 +5,5 @@ class DataSourceBase(object):
     def __init__(self, session_manager):
         self.session_manager = session_manager
 
-    def get_data(self, start=None, end=None):
+    def get_historic_data(self, start=None, end=None):
         raise NotImplementedError
