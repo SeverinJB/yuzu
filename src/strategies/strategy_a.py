@@ -8,7 +8,7 @@ from indicators.simple_moving_average import SimpleMovingAverage as SMA
 class StrategyA(StrategyBase):
     def __init__(self, data_analyzer=None, positions_manager=None, tickers=None):
         super().__init__(data_analyzer, positions_manager, tickers)
-        self.name = "strategy_test"
+        self.name = "strategy_a"
 
         ### TODO: CLEAN UP
 

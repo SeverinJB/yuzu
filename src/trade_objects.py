@@ -28,6 +28,7 @@ class Position(object):
                and self.order == other.order
 
 class Signal(object):
-    def __init__(self, order, exits_position):
+    def __init__(self, strategy, order, exits_position):
+        self.strategy = strategy
         self.order = order
         self.exits_position = exits_position

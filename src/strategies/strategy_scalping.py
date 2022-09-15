@@ -13,6 +13,7 @@ from trade_objects import Side, Order, Signal
 class StrategyScalping(StrategyBase):
     def __init__(self, data_source, symbol, lot, api, positions_manager=None):
         super().__init__(positions_manager)
+        self.name = "strategy_scalping"
         self._api = api.get_session()
         self._symbol = symbol
         self._lot = lot
@@ -147,7 +148,7 @@ class StrategyScalping(StrategyBase):
             limit_price = max(cost_basis + 0.01, current_price)
             order = Order(self._symbol, 'sell', 0.1, price=limit_price)
             self._l.info(f'exit position')
-            return [Signal(order, True)]
+            return [Signal(self.name, order, True)]
 
         elif new_bar and not self.positions_manager.ticker_is_busy(self._symbol):
             signal = self._calc_buy_signal()
@@ -155,7 +156,7 @@ class StrategyScalping(StrategyBase):
                 price = self._datasource.get_latest_trade(self._symbol).price
                 order = Order(self._symbol, 'buy', 0.1, price=price)
 
-                return [Signal(order, False)]
+                return [Signal(self.name, order, False)]
 
 
     async def get_trade_signals(self):
