@@ -17,9 +17,11 @@ class AlpacaDataSource(DataSourceBase):
         super().__init__(session_manager)
         self.__session = self.session_manager.get_session()
 
+    # TODO: Must be removed. Handled by trade_executor
     def list_orders(self):
         return self.__session.list_orders()
 
+    # TODO: Must be removed. Handled by trade_executor
     def list_positions(self):
         return self.__session.list_positions()
 

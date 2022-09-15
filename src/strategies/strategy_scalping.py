@@ -14,9 +14,8 @@ class StrategyScalping(StrategyBase):
     def __init__(self, data_source, symbol, lot, api, positions_manager=None):
         super().__init__(positions_manager)
         self.name = "strategy_scalping"
-        self._api = api.get_session()
+
         self._symbol = symbol
-        self._lot = lot
         self._bars = []
         self._l = logger.getChild(self._symbol)
         self._datasource = data_source
@@ -72,31 +71,6 @@ class StrategyScalping(StrategyBase):
                         f'state {self._state} mismatch order {self._order}')
 
 
-    def _now(self):
-        return pd.Timestamp.now(tz='America/New_York')
-
-
-    def checkup(self, position):
-        # TODO: Should be handled by trade_manager
-
-        now = self._now()
-        order = self._order
-        if (order is not None and
-            order.side == 'buy' and now -
-                order.submitted_at.tz_convert(tz='America/New_York') > pd.Timedelta('2 min')):
-            last_price = self._datasource.get_latest_trade(self._symbol).price
-            self._l.info(
-                f'canceling missed buy order {order.id} at {order.limit_price} '
-                f'(current price = {last_price})')
-            self._cancel_order()
-
-
-    def _cancel_order(self):
-        # TODO: Should be handled by either trade_executor
-
-        if self._order is not None:
-            self._api.cancel_order(self._order.id)
-
 
     def _calc_buy_signal(self):
         mavg = self._bars.rolling(21).mean().close.values
@@ -113,7 +87,7 @@ class StrategyScalping(StrategyBase):
             return False
 
 
-    def on_bar(self, data):
+    def analyse_data(self, data):
         # TODO: Should data_sources objects handle data entirely?
 
         new_bar = False
@@ -160,7 +134,7 @@ class StrategyScalping(StrategyBase):
 
 
     async def get_trade_signals(self):
-        result = self.on_bar(self._datasource.get_latest_bars())
+        result = self.analyse_data(self._datasource.get_latest_bars())
 
         if result is None:
             return []

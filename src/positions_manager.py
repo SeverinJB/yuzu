@@ -47,6 +47,10 @@ class PositionsManager(object):
         return self.__pending_orders[ticker]
 
 
+    def get_pending_orders(self):
+        return self.__pending_orders
+
+
     def open_position(self, position):
         ticker = position.order.ticker_symbol
         self.delete_pending_order(ticker)
@@ -61,7 +65,7 @@ class PositionsManager(object):
             raise Exception(f'PositionsManager: No existing position for {ticker}!')
 
 
-    def open_pending_order(self, position):
+    def add_pending_order(self, position):
         ticker = position.order.ticker_symbol
         self.__pending_orders[ticker] = position
         logger.info(f'Open pending order: {position}')

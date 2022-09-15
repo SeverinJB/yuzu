@@ -15,10 +15,12 @@ class TradeManager(object):
         self.__strategies_manager = strategies_manager
         self.__positions_manager = positions_manager
 
+    def __now(self):
+        return pd.Timestamp.now(tz='America/New_York')
 
     def __outofmarket(self):
         opening_time = pd.Timestamp('09:30').time()
-        now = pd.Timestamp.now(tz='America/New_York').floor('1min').time()
+        now = self.__now().floor('1min').time()
         closure_time = pd.Timestamp('16:00').time()
 
         market_closed = (opening_time >= now) or (closure_time <= now)
@@ -51,15 +53,16 @@ class TradeManager(object):
             if self.__positions_manager.ticker_is_busy(ticker):
                 raise Exception("PositionsManager: Trying to open position for busy ticker!")
             else:
+                self.__positions_manager.add_pending_order(Position(order=order))
                 order_response = await self.__executor.submit_order(order)
 
-            if order_response is not None:
-                self.__positions_manager.open_position(Position(order=order))
-            else:
-                # TODO: Decide what to do if position cannot be opened
-                # raise Exception("TradeManager: failed to enter position!")
-                pass
-
+            # TODO: Implement update function that switches from pending to fulfilled
+            # if order_response is not None:
+            #     self.__positions_manager.open_position(Position(order=order))
+            # else:
+            #     # TODO: Decide what to do if position cannot be opened
+            #     # raise Exception("TradeManager: failed to enter position!")
+            #     pass
 
 
     async def __classify_signals(self, signals):
@@ -83,6 +86,16 @@ class TradeManager(object):
         return signals
 
 
+    async def __time_out_pending_orders(self):
+        now = self.__now()
+        for position in self.__positions_manager.get_pending_orders().values():
+            if (now - position.order.submitted_at.tz_convert(tz='America/New_York')
+                    > pd.Timedelta(position.order.valid_for_seconds, "seconds")):
+                self.__executor.cancel_order(position.order.id)
+                self.__positions_manager.delete_pending_order(position.order.ticker_symbol)
+        await asyncio.sleep(30)
+
+
     async def trade(self):
         if self.__outofmarket():
             logger.info(f'Out of market')
@@ -92,6 +105,7 @@ class TradeManager(object):
             #    self._submit_sell(bailout=True)
 
         else:
+            await self.__time_out_pending_orders()
             #self.__positions_manager.update_positions()
 
             trade_signals = await self.__collect_trade_signals()
