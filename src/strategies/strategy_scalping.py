@@ -40,7 +40,9 @@ class StrategyScalping(StrategyBase):
 
     def analyse_data(self, data):
         if len(data) < 20:
-            return
+            return None
+
+        print(data)
 
         # TODO - Fix error: Too many requests for list_positions
         position = []  # [p for p in self._datasource.list_positions() if p.symbol == self._symbol]
@@ -66,7 +68,8 @@ class StrategyScalping(StrategyBase):
 
 
     async def get_trade_signals(self):
-        result = self.analyse_data(self._datasource.get_latest_bars(self._symbol))
+        data = await self._datasource.get_latest_bars(self._symbol)
+        result = self.analyse_data(data)
 
         if result is None:
             return []
