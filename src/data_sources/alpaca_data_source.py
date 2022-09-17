@@ -1,12 +1,12 @@
 # Copyright Yuzu Trading 2022
 # Any unauthorized usage forbidden
 
+import pytz
 import logging
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
-import pytz
-
 from alpaca_trade_api.rest import TimeFrame
+
 from data_source_base import DataSourceBase
 
 logger = logging.getLogger()

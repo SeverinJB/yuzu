@@ -6,7 +6,7 @@ class TradeExecutorBase(object):
         pass
 
     def close_position(self, id):
-        # Must return a bool indicating whether or not the closure was successful
+        # Must return a bool indicating whether the closure was successful
         raise NotImplementedError
 
     def cancel_order(self, id):

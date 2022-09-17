@@ -4,13 +4,13 @@
 import logging
 
 from strategy_base import StrategyBase
-from trade_objects import Side, Order, Signal
+from trade_objects import Order, Signal
 
 logger = logging.getLogger()
 
 
 class StrategyScalping(StrategyBase):
-    def __init__(self, data_source, symbol, lot, api, positions_manager=None):
+    def __init__(self, data_source, symbol, positions_manager=None):
         super().__init__(positions_manager)
         self.name = "strategy_scalping"
 
