@@ -4,6 +4,7 @@
 from trade_executor_base import TradeExecutorBase
 from trade_objects import Side
 
+
 class T212TradeExecutor(TradeExecutorBase):
     def __init__(self, session_manager):
         super().__init__()
@@ -13,9 +14,9 @@ class T212TradeExecutor(TradeExecutorBase):
             self,
             request_type,
             path,
-            request_data = None,
-            base_url = 'https://demo.trading212.com/rest',
-            api_version = 'v2'):
+            request_data=None,
+            base_url='https://demo.trading212.com/rest',
+            api_version='v2'):
 
         request_attributes = {'headers': self.__session_manager.get_headers(),
                               'cookies': self.__session_manager.get_session().cookies.get_dict()}
@@ -30,16 +31,16 @@ class T212TradeExecutor(TradeExecutorBase):
 
         return response
 
-    def __get(self, path, data = None):
+    def __get(self, path, data=None):
         return self.__send_request('GET', path, data)
 
-    def __post(self, path, data = None):
+    def __post(self, path, data=None):
         return self.__send_request('POST', path, data)
 
-    def __patch(self, path, data = None):
+    def __patch(self, path, data=None):
         return self.__send_request('PATCH', path, data)
 
-    def __delete(self, path, data = None):
+    def __delete(self, path, data=None):
         return self.__send_request('DELETE', path, data)
 
     def submit_order(self, order):
@@ -72,7 +73,7 @@ class T212TradeExecutor(TradeExecutorBase):
 
     # TODO: Implement
     # def close_all_positions(self):
-        # TODO: Check response consistent with request
+    # TODO: Check response consistent with request
     # 	'''Liquidates all open positions at market price'''
     # 	self.delete('/open-positions/close-all/')
     # 	# return [Order(o) for o in resp]

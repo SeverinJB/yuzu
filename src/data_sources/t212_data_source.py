@@ -6,6 +6,7 @@ import datetime
 
 from data_source_base import DataSourceBase
 
+
 class T212DataSource(DataSourceBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
@@ -18,8 +19,8 @@ class T212DataSource(DataSourceBase):
             tmp[datetime.datetime.strptime(tick['timestamp'], '%Y-%m-%dT%H:%M:%S%z').replace(
                 tzinfo=None)] = {
                 'bid': tick['bid'][
-                'close'], 'ask': tick['ask'][
-                'close'], 'volume': tick['volume']}
+                    'close'], 'ask': tick['ask'][
+                    'close'], 'volume': tick['volume']}
 
         clean_data = pd.DataFrame.from_dict(tmp, orient='index')
 
@@ -39,4 +40,3 @@ class T212DataSource(DataSourceBase):
         data = self.__clean_data(response.json()['candles'][0]['result'])
 
         return data
-

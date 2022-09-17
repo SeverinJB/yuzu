@@ -19,13 +19,13 @@ class AlpacaDataSource(DataSourceBase):
         self.__database = {}  # Ticker is key
 
 
-    # TODO: Must be removed. Handled by trade_executor
     def list_orders(self):
+        # TODO: Must be removed. Handled by trade_executor
         return self.__session.list_orders()
 
 
-    # TODO: Must be removed. Handled by trade_executor
     def list_positions(self):
+        # TODO: Must be removed. Handled by trade_executor
         return self.__session.list_positions()
 
 
@@ -35,13 +35,6 @@ class AlpacaDataSource(DataSourceBase):
 
     def __clean_data(self, data):
         raise NotImplementedError
-
-
-    def get_historic_data(self, ticker, start, end):
-        response = self.__session.get_bars(ticker, TimeFrame.Minute, start, end, adjustment='raw')
-        data = response.df
-
-        return data
 
 
     def __append_bar(self, data, bar):
@@ -56,22 +49,29 @@ class AlpacaDataSource(DataSourceBase):
         return data
 
 
-    def subscribe_bars(self, symbol):
+    def get_historic_data(self, ticker, start, end):
+        response = self.__session.get_bars(ticker, TimeFrame.Minute, start, end, adjustment='raw')
+        data = response.df
+
+        return data
+
+
+    def subscribe_bars(self, ticker):
         global start_data_stream  # "Can't pickle local object"
         executor = ThreadPoolExecutor(max_workers=1)
 
-        if symbol not in self.__database.keys():
+        if ticker not in self.__database.keys():
             columnn_names = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-            self.__database[symbol] = pd.DataFrame(columns=columnn_names)
-            self.__database[symbol].set_index('timestamp', inplace=True)
+            self.__database[ticker] = pd.DataFrame(columns=columnn_names)
+            self.__database[ticker].set_index('timestamp', inplace=True)
 
         async def on_bar(bar):
             if bar:
                 logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}')
-                self.__database[symbol] = self.__append_bar(self.__database[symbol], bar)
+                self.__database[ticker] = self.__append_bar(self.__database[ticker], bar)
 
         def start_data_stream():
-            self.session_manager.get_stream().subscribe_bars(on_bar, symbol)
+            self.session_manager.get_stream().subscribe_bars(on_bar, ticker)
             self.session_manager.get_stream().run()
 
         executor.submit(start_data_stream)

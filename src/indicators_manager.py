@@ -1,8 +1,9 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-from indicators.simple_moving_average import SimpleMovingAverage
 from indicators.bollinger_bands import BollingerBands
+from indicators.simple_moving_average import SimpleMovingAverage
+
 
 class IndicatorManager(object):
     def __init__(self):

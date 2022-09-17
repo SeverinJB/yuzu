@@ -13,19 +13,24 @@ import copy
 
 import session_manager_base
 
+
 def on_message(ws, message):
     print(message)
+
 
 def on_error(ws, error):
     return error
 
+
 def on_close(ws):
     print("### closed ###")
+
 
 def on_open(ws):
     ws.send('42["subscribe","/ACCOUNT"]')
     ws.send('42["subscribe","/BUYERSSELLERS"]')
     ws.send('42["subscribe","/WORKING-SCHEDULES"]')
+
 
 class T212SessionManager(session_manager_base.SessionManagerBase):
     def __init__(self):
@@ -40,7 +45,7 @@ class T212SessionManager(session_manager_base.SessionManagerBase):
         }
         self.__websocket_headers = {}
 
-    def	__successful_response(self, response):
+    def __successful_response(self, response):
         return "\"isValid\":true" in response.text
 
     def __connect_websocket(self):

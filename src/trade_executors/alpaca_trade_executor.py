@@ -7,6 +7,7 @@ from trade_executor_base import TradeExecutorBase
 
 logger = logging.getLogger()
 
+
 class AlpacaTradeExecutor(TradeExecutorBase):
     def __init__(self, session_manager):
         super().__init__()

@@ -1,14 +1,13 @@
 # Copyright Yuzu Trading 2022
 # Any unauthorized usage forbidden
 
-import pandas as pd
-import pytz
 import logging
-
-logger = logging.getLogger()
 
 from strategy_base import StrategyBase
 from trade_objects import Side, Order, Signal
+
+logger = logging.getLogger()
+
 
 class StrategyScalping(StrategyBase):
     def __init__(self, data_source, symbol, lot, api, positions_manager=None):
@@ -41,8 +40,6 @@ class StrategyScalping(StrategyBase):
     def analyse_data(self, data):
         if len(data) < 20:
             return None
-
-        print(data)
 
         # TODO - Fix error: Too many requests for list_positions
         position = []  # [p for p in self._datasource.list_positions() if p.symbol == self._symbol]

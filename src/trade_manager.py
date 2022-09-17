@@ -9,6 +9,7 @@ from trade_objects import Position
 
 logger = logging.getLogger()
 
+
 class TradeManager(object):
     def __init__(self, trade_executor, strategies_manager, positions_manager):
         self.__executor = trade_executor

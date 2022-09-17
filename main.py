@@ -4,17 +4,16 @@
 # from session_managers.t212_session_manager import T212SessionManager
 # from trade_executors.t212_trade_executor import T212TradeExecutor
 
-from session_managers.alpaca_session_manager import AlpacaSessionManager
-from trade_executors.alpaca_trade_executor import AlpacaTradeExecutor
-
 import logging
 import asyncio
-
-logger = logging.getLogger()
 
 from positions_manager import PositionsManager
 from strategies_manager import StrategiesManager
 from trade_manager import TradeManager
+from session_managers.alpaca_session_manager import AlpacaSessionManager
+from trade_executors.alpaca_trade_executor import AlpacaTradeExecutor
+
+logger = logging.getLogger()
 
 ALPACA_API_KEY = 'PKKPMD01L7WOTNX5Y62S'
 ALPACA_SECRET_KEY = 'l2TXXSIz2AIjkSmUmXltYwicIZiBNU6kDpJ2pVxE'
