@@ -100,7 +100,6 @@ class TradeManager(object):
                     > pd.Timedelta(position.order.valid_for_seconds, "seconds")):
                 self.__executor.cancel_order(position.order.id)
                 self.__positions_manager.delete_pending_order(position.order.ticker_symbol)
-        await asyncio.sleep(30)
 
 
     async def trade(self):

@@ -34,7 +34,7 @@ class StrategyScalping(StrategyBase):
             return False
 
 
-    def analyse_data(self, data):
+    def get_signal(self, data):
         position = None
         positions_for_strategy = self.positions_manager.get_open_positons_for_strategy(self.name)
 
@@ -66,9 +66,5 @@ class StrategyScalping(StrategyBase):
 
     async def get_trade_signals(self):
         data = await self._datasource.get_latest_bars(self._symbol)
-
-        if data is not None and len(data) > 20:
-            result = self.analyse_data(data)
-            return result
-        else:
-            return []
+        signal = self.get_signal(data)
+        return signal
