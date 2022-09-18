@@ -1,7 +1,7 @@
 # Copyright Burg&Biondi 2020
 # Any unauthorized usage forbidden
 
-__all__ = ["data_analyzers",
+__all__ = ["data_analyzer_base",
            "data_source_base",
            "indicator_base",
            "indicators_manager",

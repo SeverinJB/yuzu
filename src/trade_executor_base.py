@@ -2,8 +2,8 @@
 # Any unauthorized usage forbidden
 
 class TradeExecutorBase(object):
-    def __init__(self):
-        pass
+    def __init__(self, session_manager):
+        self.session_manager = session_manager
 
     def close_position(self, id):
         # Must return a bool indicating whether the closure was successful

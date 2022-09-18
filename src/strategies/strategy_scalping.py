@@ -13,11 +13,8 @@ class StrategyScalping(StrategyBase):
     def __init__(self, data_source, symbol, positions_manager=None):
         super().__init__(positions_manager)
         self.name = "strategy_scalping"
-
-        self._symbol = symbol
-        self._l = logger.getChild(self._symbol)
         self._datasource = data_source
-        self._position = []
+        self._symbol = symbol
 
         self._datasource.subscribe_bars(self._symbol)
 
@@ -27,32 +24,32 @@ class StrategyScalping(StrategyBase):
         closes = data.close.values
 
         if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
-            self._l.info(
+            logger.info(
                 f'buy signal: closes[-2] {closes[-2]} < mavg[-2] {mavg[-2]} '
                 f'closes[-1] {closes[-1]} > mavg[-1] {mavg[-1]}')
             return True
         else:
-            self._l.info(
+            logger.info(
                 f'closes[-2:] = {closes[-2:]}, mavg[-2:] = {mavg[-2:]}')
             return False
 
 
     def analyse_data(self, data):
-        if len(data) < 20:
-            return None
+        position = None
+        positions_for_strategy = self.positions_manager.get_open_positons_for_strategy(self.name)
 
-        # TODO - Fix error: Too many requests for list_positions
-        position = []  # [p for p in self._datasource.list_positions() if p.symbol == self._symbol]
-        self._position = position[0] if len(position) > 0 else None
+        for item in positions_for_strategy:
+            if self._symbol == item.order.ticker_symbol:
+                position = item
 
-        if self._position is not None and self.positions_manager.ticker_is_busy(self._symbol):
+        if position is not None:
             current_price = float(self._datasource.get_latest_trade(self._symbol).price)
-            cost_basis = float(self._position.avg_entry_price)
+            cost_basis = float(position.avg_entry_price)
             limit_price = max(cost_basis + 0.01, current_price)
 
             # TODO: Closing order cannot have timeout time
             order = Order(self._symbol, 'sell', 0.1, 120, price=limit_price)
-            self._l.info(f'exit position')
+            logger.info(f'exit position')
             return [Signal(self.name, order, True)]
 
         elif not self.positions_manager.ticker_is_busy(self._symbol):
@@ -63,12 +60,15 @@ class StrategyScalping(StrategyBase):
 
                 return [Signal(self.name, order, False)]
 
+        else:
+            return []
+
 
     async def get_trade_signals(self):
         data = await self._datasource.get_latest_bars(self._symbol)
-        result = self.analyse_data(data)
 
-        if result is None:
-            return []
-        else:
+        if data is not None and len(data) > 20:
+            result = self.analyse_data(data)
             return result
+        else:
+            return []

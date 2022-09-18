@@ -23,8 +23,7 @@ class StrategiesManager(object):
         logger.info(f'Strategies Manager initiating strategies')
 
         strategies = {"strategy_scalping": StrategyScalping(AlpacaDataSource(
-            self.__session_manager), 'AAPL', 2000, self.__session_manager,
-            self.__positions_manager)}
+            self.__session_manager), 'AAPL', self.__positions_manager)}
 
         # select strategies, instantiate one for each with the
         # data source and add them to strategies

@@ -16,12 +16,8 @@ class AlpacaDataSource(DataSourceBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
         self.__session = self.session_manager.get_session()
-        self.__database = {}  # Ticker is key
-
-
-    def list_orders(self):
-        # TODO: Must be removed. Handled by trade_executor
-        return self.__session.list_orders()
+        self.__database = {}  # Key is ticker.
+        self.__bars = {} # Key is ticket. Value is list of bars.
 
 
     def list_positions(self):
@@ -57,25 +53,28 @@ class AlpacaDataSource(DataSourceBase):
 
 
     def subscribe_bars(self, ticker):
-        global start_data_stream  # "Can't pickle local object"
-        executor = ThreadPoolExecutor(max_workers=1)
-
         if ticker not in self.__database.keys():
-            columnn_names = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-            self.__database[ticker] = pd.DataFrame(columns=columnn_names)
+            column_names = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+            self.__database[ticker] = pd.DataFrame(columns=column_names)
             self.__database[ticker].set_index('timestamp', inplace=True)
+
+        if ticker not in self.__bars.keys():
+            self.__bars[ticker] = []
 
         async def on_bar(bar):
             if bar:
                 logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}')
-                self.__database[ticker] = self.__append_bar(self.__database[ticker], bar)
+                self.__bars[ticker].append(bar)
 
-        def start_data_stream():
-            self.session_manager.get_stream().subscribe_bars(on_bar, ticker)
-            self.session_manager.get_stream().run()
-
-        executor.submit(start_data_stream)
+        self.session_manager.get_stream().subscribe_bars(on_bar, ticker)
 
 
     async def get_latest_bars(self, ticker):
-        return self.__database[ticker]
+        if self.__bars[ticker]:
+            # TODO: Implement quicker solution for appending long list of bars.
+            for bar in self.__bars[ticker]:
+                self.__database[ticker] = self.__append_bar(self.__database[ticker], bar)
+                self.__bars[ticker].remove(bar)
+            return self.__database[ticker]
+        else:
+            return None

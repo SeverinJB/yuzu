@@ -16,8 +16,10 @@ class TradeManager(object):
         self.__strategies_manager = strategies_manager
         self.__positions_manager = positions_manager
 
+
     def __now(self):
         return pd.Timestamp.now(tz='America/New_York')
+
 
     def __outofmarket(self):
         opening_time = pd.Timestamp('09:30').time()
@@ -89,6 +91,7 @@ class TradeManager(object):
 
     async def __check_for_updates(self):
         raise NotImplementedError
+
 
     async def __time_out_pending_orders(self):
         now = self.__now()
