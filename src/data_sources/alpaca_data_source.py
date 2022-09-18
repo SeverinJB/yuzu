@@ -20,11 +20,6 @@ class AlpacaDataSource(DataSourceBase):
         self.__bars = {} # Key is ticket. Value is list of bars.
 
 
-    def list_positions(self):
-        # TODO: Must be removed. Handled by trade_executor
-        return self.__session.list_positions()
-
-
     def get_latest_trade(self, symbol):
         return self.__session.get_latest_trade(symbol)
 

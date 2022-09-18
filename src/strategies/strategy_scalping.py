@@ -19,7 +19,15 @@ class StrategyScalping(StrategyBase):
         self.__datasource.subscribe_bars(self.__symbol)
 
 
-    def _calc_buy_signal(self, data):
+    def get_open_positions(self):
+        return self.positions_manager.get_open_positons_for_strategy(self.name)
+
+
+    def get_name(self):
+        return self.name
+
+
+    def __calc_buy_signal(self, data):
         mavg = data.rolling(21).mean().close.values
         closes = data.close.values
 
@@ -34,9 +42,9 @@ class StrategyScalping(StrategyBase):
             return False
 
 
-    def get_signal(self, data):
+    def __get_signal(self, data):
         position = None
-        positions_for_strategy = self.positions_manager.get_open_positons_for_strategy(self.name)
+        positions_for_strategy = self.get_open_positions()
 
         for item in positions_for_strategy:
             if self.__symbol == item.order.ticker_symbol:
@@ -53,7 +61,7 @@ class StrategyScalping(StrategyBase):
             return [Signal(self.name, order, True)]
 
         elif not self.positions_manager.ticker_is_busy(self.__symbol) and data is not None:
-            signal = self._calc_buy_signal(data)
+            signal = self.__calc_buy_signal(data)
             if signal:
                 price = self.__datasource.get_latest_trade(self.__symbol).price
                 order = Order(self.__symbol, 'buy', 0.1, 120, price=price)
@@ -66,5 +74,5 @@ class StrategyScalping(StrategyBase):
 
     async def get_trade_signals(self):
         data = await self.__datasource.get_latest_bars(self.__symbol)
-        signal = self.get_signal(data)
+        signal = self.__get_signal(data)
         return signal
