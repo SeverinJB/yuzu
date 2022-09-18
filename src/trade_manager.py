@@ -12,7 +12,7 @@ logger = logging.getLogger()
 
 class TradeManager(object):
     def __init__(self, trade_executor, strategies_manager, positions_manager):
-        self.__executor = trade_executor
+        self.__trade_executor = trade_executor
         self.__strategies_manager = strategies_manager
         self.__positions_manager = positions_manager
 
@@ -33,7 +33,7 @@ class TradeManager(object):
 
     async def __exit_positions(self, exit_orders):
         for order in exit_orders:
-            order_response = await self.__executor.submit_order(order)
+            order_response = await self.__trade_executor.submit_order(order)
             if order_response is not None:
                 self.__positions_manager.close_position(order.ticker_symbol)
 
@@ -57,7 +57,7 @@ class TradeManager(object):
                 raise Exception("PositionsManager: Trying to open position for busy ticker!")
             else:
                 self.__positions_manager.add_pending_order(Position(order=order))
-                order_response = await self.__executor.submit_order(order)
+                order_response = await self.__trade_executor.submit_order(order)
 
             # TODO: Implement update function that switches from pending to fulfilled
             # if order_response is not None:
@@ -89,8 +89,11 @@ class TradeManager(object):
         return signals
 
 
-    async def __check_for_updates(self):
-        raise NotImplementedError
+    def __check_for_order_updates(self):
+        for order in self.__positions_manager.get_pending_orders():
+            order_updates = self.__trade_executor.get_latest_order_updates(order.ticker_symbol)
+            for update in order_updates:
+                self.__positions_manager.update_position(update)
 
 
     async def __time_out_pending_orders(self):
@@ -98,7 +101,7 @@ class TradeManager(object):
         for position in self.__positions_manager.get_pending_orders().values():
             if (now - position.order.submitted_at.tz_convert(tz='America/New_York')
                     > pd.Timedelta(position.order.valid_for_seconds, "seconds")):
-                self.__executor.cancel_order(position.order.id)
+                self.__trade_executor.cancel_order(position.order.id)
                 self.__positions_manager.delete_pending_order(position.order.ticker_symbol)
 
 
@@ -111,7 +114,7 @@ class TradeManager(object):
             #    self._submit_sell(bailout=True)
 
         else:
-            # await self.__check_for_updates()
+            self.__check_for_order_updates()
             # await self.__time_out_pending_orders()
 
             trade_signals = await self.__collect_trade_signals()

@@ -12,9 +12,22 @@ class PositionsManager(object):
         self.__pending_orders = {} # ticker as key
 
 
-    def update_positions(self, broker):
-        # TODO: Implement to update pending orders and postitions with triggered sl/tp
-        pass
+    def update_position(self, update):
+        logger.info(f'order update: {update.event} = {update.order}')
+        if update.event == 'fill':
+            self.open_position(update.order)
+        elif update.event == 'partial_fill':
+            original_order = self.get_pending_order(update.order.ticker_symbol)
+            new_order = original_order
+            new_order.size = original_order.size - update.order.size
+            self.open_position(update.order)
+            self.add_pending_order(new_order)
+        elif update.event in ('canceled', 'rejected'):
+            if update.event == 'rejected':
+                logger.warn(f'Order rejected: current order = {update.order}')
+            self.delete_pending_order(update.order.ticker_symbol)
+        else:
+            logger.warn(f'Unexpected event: {update.event} for {update.order}')
 
 
     def open_position_exists_for_ticker(self, ticker):

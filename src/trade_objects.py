@@ -3,9 +3,11 @@
 
 import enum
 
+
 class Side(enum.Enum):
-   BUY = 1
-   SELL = 2
+    BUY = 1
+    SELL = 2
+
 
 class Order:
     def __init__(self, ticker, side, size, valid_for_seconds, price=None, stop_loss=None,
@@ -18,6 +20,7 @@ class Order:
         self.take_profit = take_profit
         self.valid_for_seconds = valid_for_seconds
 
+
 class Position(object):
     def __init__(self, strategy_name=None, order=None, id=None):
         self.strategy = strategy_name
@@ -28,6 +31,7 @@ class Position(object):
         return self.strategy == other.strategy \
                and self.trade_id == other.trade_id \
                and self.order == other.order
+
 
 class Signal(object):
     def __init__(self, strategy, order, exits_position):

@@ -12,6 +12,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
         self.__session = session_manager.get_session()
+        self.__order_updates = {}  # Key is ticker. Value is list of updates.
 
 
     def __send_request(self):
@@ -54,9 +55,10 @@ class AlpacaTradeExecutor(TradeExecutorBase):
         raise NotImplementedError
 
 
-    def subscribe_bars(self, ticker):
-        async def on_bar(bar):
-            if bar:
-                logger.info(f'New bar: close: {bar.close}')
-
-        self.session_manager.get_stream().subscribe_bars(on_bar, ticker)
+    def get_latest_order_updates(self, ticker):
+        if self.__order_updates[ticker]:
+            updates = self.__order_updates[ticker]
+            del self.__order_updates[ticker]
+            return updates
+        else:
+            return None
