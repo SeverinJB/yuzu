@@ -8,26 +8,25 @@ logger = logging.getLogger()
 
 class PositionsManager(object):
     def __init__(self):
-        self.__open_positions = {} # ticker as key
-        self.__pending_orders = {} # ticker as key
+        self.__open_positions = {}  # ticker as key
+        self.__pending_orders = {}  # ticker as key
 
 
     def update_position(self, update):
-        logger.info(f'order update: {update.event} = {update.order}')
-        if update.event == 'fill':
-            self.open_position(update.order)
-        elif update.event == 'partial_fill':
-            original_order = self.get_pending_order(update.order.ticker_symbol)
-            new_order = original_order
-            new_order.size = original_order.size - update.order.size
-            self.open_position(update.order)
-            self.add_pending_order(new_order)
-        elif update.event in ('canceled', 'rejected'):
-            if update.event == 'rejected':
-                logger.warn(f'Order rejected: current order = {update.order}')
-            self.delete_pending_order(update.order.ticker_symbol)
+        logger.info(f"order update: {update['event']} = {update['position']}")
+        if update['event'] == 'fill':
+            self.open_position(update['position'])
+        elif update['event'] == 'partial_fill':
+            remaining_order = self.get_pending_order(update['position'].order.ticker_symbol)
+            remaining_order.order.size -= update['position'].order.size
+            self.open_position(update['position'])
+            self.add_pending_order(remaining_order)
+        elif update['event'] in ('canceled', 'rejected'):
+            if update['event'] == 'rejected':
+                logger.warn(f"Order rejected: current order = {update['position']}")
+            self.delete_pending_order(update['position'].ticker_symbol)
         else:
-            logger.warn(f'Unexpected event: {update.event} for {update.order}')
+            logger.warn(f"Unexpected event: {update['event']} for {update['position']}")
 
 
     def open_position_exists_for_ticker(self, ticker):
@@ -43,7 +42,7 @@ class PositionsManager(object):
                 self.pending_order_exists_for_ticker(ticker)
 
 
-    def get_open_positons_for_strategy(self, strategy_name):
+    def get_open_positions_for_strategy(self, strategy_name):
         positions = []
         for position in self.__open_positions.values():
             if position.strategy == strategy_name:

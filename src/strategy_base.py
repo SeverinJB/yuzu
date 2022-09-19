@@ -10,7 +10,7 @@ class StrategyBase(object):
 
     def get_open_positions(self):
         # TODO: write test for this method
-        return self.positions_manager.get_open_positons_for_strategy(self.name)
+        return self.positions_manager.get_open_positions_for_strategy(self.name)
 
     def get_name(self):
         return self.name

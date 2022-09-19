@@ -20,7 +20,7 @@ class StrategyScalping(StrategyBase):
 
 
     def get_open_positions(self):
-        return self.positions_manager.get_open_positons_for_strategy(self.name)
+        return self.positions_manager.get_open_positions_for_strategy(self.name)
 
 
     def get_name(self):
@@ -61,15 +61,13 @@ class StrategyScalping(StrategyBase):
             return [Signal(self.name, order, True)]
 
         elif not self.positions_manager.ticker_is_busy(self.__symbol) and data is not None:
-            signal = self.__calc_buy_signal(data)
-            if signal:
-                price = self.__datasource.get_latest_trade(self.__symbol).price
-                order = Order(self.__symbol, 'buy', 0.1, 120, price=price)
+            if len(data) > 20:
+                signal = self.__calc_buy_signal(data)
+                if signal:
+                    price = self.__datasource.get_latest_trade(self.__symbol).price
+                    order = Order(self.__symbol, 'buy', 0.1, 120, price=price)
 
-                return [Signal(self.name, order, False)]
-
-        else:
-            return []
+                    return [Signal(self.name, order, False)]
 
 
     async def get_trade_signals(self):

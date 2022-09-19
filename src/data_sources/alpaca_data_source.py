@@ -4,7 +4,6 @@
 import pytz
 import logging
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor
 from alpaca_trade_api.rest import TimeFrame
 
 from data_source_base import DataSourceBase
@@ -58,8 +57,9 @@ class AlpacaDataSource(DataSourceBase):
 
         async def on_bar(bar):
             if bar:
-                logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}')
                 self.__bars[ticker].append(bar)
+                logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close},'
+                            f'length: {len(self.__bars[ticker])}')
 
         self.session_manager.get_stream().subscribe_bars(on_bar, ticker)
 

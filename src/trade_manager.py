@@ -84,7 +84,9 @@ class TradeManager(object):
     async def __collect_trade_signals(self):
         signals = []
         for strategy in self.__strategies_manager.get_strategies().values():
-            signals.extend(await strategy.get_trade_signals())
+            signal = await strategy.get_trade_signals()
+            if signal is not None:
+                signals.extend(signal)
 
         return signals
 
