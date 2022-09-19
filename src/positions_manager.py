@@ -17,14 +17,14 @@ class PositionsManager(object):
         if update['event'] == 'fill':
             self.open_position(update['position'])
         elif update['event'] == 'partial_fill':
-            remaining_order = self.get_pending_order(update['position'].order.ticker_symbol)
+            remaining_order = self.get_pending_order(update['position'].order.ticker)
             remaining_order.order.size -= update['position'].order.size
             self.open_position(update['position'])
             self.add_pending_order(remaining_order)
         elif update['event'] in ('canceled', 'rejected'):
             if update['event'] == 'rejected':
                 logger.warn(f"Order rejected: current order = {update['position']}")
-            self.delete_pending_order(update['position'].ticker_symbol)
+            self.delete_pending_order(update['position'].ticker)
         else:
             logger.warn(f"Unexpected event: {update['event']} for {update['position']}")
 
@@ -64,7 +64,7 @@ class PositionsManager(object):
 
 
     def open_position(self, position):
-        ticker = position.order.ticker_symbol
+        ticker = position.order.ticker
         self.delete_pending_order(ticker)
         self.__open_positions[ticker] = position
         logger.info(f'Open position: {position}')
@@ -78,7 +78,7 @@ class PositionsManager(object):
 
 
     def add_pending_order(self, position):
-        ticker = position.order.ticker_symbol
+        ticker = position.order.ticker
         self.__pending_orders[ticker] = position
         logger.info(f'Open pending order: {position}')
 

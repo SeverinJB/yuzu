@@ -35,7 +35,7 @@ class TradeManager(object):
         for order in exit_orders:
             order_response = await self.__trade_executor.submit_order(order)
             if order_response is not None:
-                self.__positions_manager.close_position(order.ticker_symbol)
+                self.__positions_manager.close_position(order.ticker)
 
             # if order_response is not None:
             #     closed_size = order_response.order.size
@@ -52,7 +52,7 @@ class TradeManager(object):
 
     async def __enter_positions(self, entry_orders):
         for order in entry_orders:
-            ticker = order.ticker_symbol
+            ticker = order.ticker
             if self.__positions_manager.ticker_is_busy(ticker):
                 raise Exception("PositionsManager: Trying to open position for busy ticker!")
             else:
@@ -93,7 +93,7 @@ class TradeManager(object):
 
     def __check_for_order_updates(self):
         for order in self.__positions_manager.get_pending_orders():
-            order_updates = self.__trade_executor.get_latest_order_updates(order.ticker_symbol)
+            order_updates = self.__trade_executor.get_latest_order_updates(order.ticker)
             for update in order_updates:
                 self.__positions_manager.update_position(update)
 
@@ -104,7 +104,7 @@ class TradeManager(object):
             if (now - position.order.submitted_at.tz_convert(tz='America/New_York')
                     > pd.Timedelta(position.order.valid_for_seconds, "seconds")):
                 self.__trade_executor.cancel_order(position.order.id)
-                self.__positions_manager.delete_pending_order(position.order.ticker_symbol)
+                self.__positions_manager.delete_pending_order(position.order.ticker)
 
 
     async def trade(self):

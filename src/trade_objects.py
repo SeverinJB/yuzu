@@ -12,7 +12,7 @@ class Side(enum.Enum):
 class Order:
     def __init__(self, ticker, side, size, valid_for_seconds, price=None, stop_loss=None,
                  take_profit=None):
-        self.ticker_symbol = ticker
+        self.ticker = ticker
         self.price = price
         self.side = side
         self.size = size

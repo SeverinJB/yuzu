@@ -47,7 +47,7 @@ class StrategyScalping(StrategyBase):
         positions_for_strategy = self.get_open_positions()
 
         for item in positions_for_strategy:
-            if self.__symbol == item.order.ticker_symbol:
+            if self.__symbol == item.order.ticker:
                 position = item
 
         if position is not None:

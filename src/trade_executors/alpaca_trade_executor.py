@@ -34,14 +34,14 @@ class AlpacaTradeExecutor(TradeExecutorBase):
 
         try:
             response = await self.__session.submit_order(
-                symbol=order.ticker_symbol,
+                symbol=order.ticker,
                 side=order.side,
                 type='limit',
                 qty=amount,
                 time_in_force='day',
                 limit_price=order.price,
             )
-            logger.info(f'submitted order {order.ticker_symbol}')
+            logger.info(f'submitted order {order.ticker}')
             return response
 
         except Exception as e:

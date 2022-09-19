@@ -89,7 +89,7 @@ def test_opene_positions_tries_to_open_position_on_entry_signal(mocker):
     strategy_name = 'StrategyA'
     mock_strategy = mocker.Mock()
     mock_order = mocker.Mock()
-    mock_order.ticker_symbol = ticker
+    mock_order.ticker = ticker
     mock_order.id = trade_id
     mock_order_response = mocker.Mock()
     mock_order_response.id = trade_id
@@ -121,7 +121,7 @@ def test_opene_positions_does_nothing_if_ticker_already_busy(mocker):
     ticker = 'TICKER'
     mock_strategy = mocker.Mock()
     mock_order = mocker.Mock()
-    mock_order.ticker_symbol = ticker
+    mock_order.ticker = ticker
 
     mock_strategy.get_entry_signals.return_value = [mock_order]
     mock_strategy_manager.get_strategies.return_value = [mock_strategy]

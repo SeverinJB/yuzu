@@ -28,7 +28,7 @@ def test_update_position_creates_position_for_filled_order(mocker, test_position
     open_positions = test_positions_manager._PositionsManager__open_positions
 
     position = mocker.Mock()
-    position.order.ticker_symbol = 'MY_ORDER_TICKER'
+    position.order.ticker = 'MY_ORDER_TICKER'
 
     update = {'event': 'fill', 'position': position}
     test_positions_manager.update_position(update)
@@ -43,13 +43,13 @@ def test_update_position_creates_new_pending_order_for_partial_fill(mocker, test
     ticker = 'MY_ORDER_TICKER'
 
     existing_position = mocker.Mock()
-    existing_position.order.ticker_symbol = ticker
+    existing_position.order.ticker = ticker
     existing_position.order.size = 5
 
     pending_orders[ticker] = existing_position
 
     partial_fill_position = mocker.Mock()
-    partial_fill_position.order.ticker_symbol = ticker
+    partial_fill_position.order.ticker = ticker
     partial_fill_position.order.size = 2
 
     update = {'event': 'partial_fill', 'position': partial_fill_position}
@@ -114,7 +114,7 @@ def test_get_open_positons_for_strategy_gets_all_position_for_strategy():
 
 def test_open_position_opens_position(mocker, test_positions_manager):
     mock_order = mocker.Mock()
-    mock_order.ticker_symbol = 'MY_ORDER_TICKER'
+    mock_order.ticker = 'MY_ORDER_TICKER'
     position = Position('strategy', mock_order, 0)
 
     test_positions_manager.open_position(position)
@@ -126,7 +126,7 @@ def test_open_position_opens_position(mocker, test_positions_manager):
 def test_open_position_raise_error_if_ticker_already_busy(mocker):
     mock_order = mocker.Mock()
     ticker = 'TEST_TICKER'
-    mock_order.ticker_symbol = ticker
+    mock_order.ticker = ticker
     position = Position('strategy', mock_order, 0)
 
     manager = PositionsManager()

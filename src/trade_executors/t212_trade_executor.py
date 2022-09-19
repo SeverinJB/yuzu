@@ -49,7 +49,7 @@ class T212TradeExecutor(TradeExecutorBase):
 
         # TODO: Check response consistent with request
 
-        path = '/pending-orders/entry-dep-limit-stop/' + order.ticker_symbol
+        path = '/pending-orders/entry-dep-limit-stop/' + order.ticker
         order_details = {
             "notify": "NONE",
             "targetPrice": order.price,
