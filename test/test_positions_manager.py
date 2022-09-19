@@ -33,7 +33,7 @@ def test_update_position_creates_position_for_filled_order(mocker, test_position
     update = {'event': 'fill', 'position': position}
     test_positions_manager.update_position(update)
 
-    assert open_positions[update['position'].order.ticker_symbol] == update['position']
+    assert open_positions['MY_ORDER_TICKER'] == update['position']
 
 
 def test_update_position_creates_new_pending_order_for_partial_fill(mocker, test_positions_manager):
