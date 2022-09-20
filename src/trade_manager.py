@@ -100,11 +100,11 @@ class TradeManager(object):
 
     async def __time_out_pending_orders(self):
         now = self.__now()
-        for position in self.__positions_manager.get_pending_orders().values():
-            if (now - position.order.submitted_at.tz_convert(tz='America/New_York')
-                    > pd.Timedelta(position.order.valid_for_seconds, "seconds")):
-                self.__trade_executor.cancel_order(position.order.id)
-                self.__positions_manager.delete_pending_order(position.order.ticker)
+        for order in self.__positions_manager.get_pending_orders().values():
+            if (now - order.submitted_at.tz_convert(tz='America/New_York')
+                    > pd.Timedelta(order.valid_for_seconds, "seconds")):
+                self.__trade_executor.cancel_order(order.id)
+                self.__positions_manager.delete_pending_order(order.ticker)
 
 
     async def trade(self):

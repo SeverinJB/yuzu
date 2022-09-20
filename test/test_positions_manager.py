@@ -91,10 +91,10 @@ def test_get_open_position_returns_correct_position(test_positions_manager):
 
 
 def test_get_pending_order_returns_correct_position(test_positions_manager):
-    assert test_positions_manager.get_pending_order('MY_ORDER_TICKER') == 'mock_position'
+    assert test_positions_manager.get_pending_order('MY_ORDER_TICKER') == 'mock_order'
 
 
-def test_get_open_positons_for_strategy_gets_all_position_for_strategy():
+def test_get_open_positions_for_strategy_gets_all_position_for_strategy():
     position_strategy_a_1 = Position('strategyA', 'mock_order1', 0)
     position_strategy_a_2 = Position('strategyA', 'mock_order2', 1)
     position_strategy_b_1 = Position('strategyB', 'mock_order3', 2)

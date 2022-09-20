@@ -10,8 +10,9 @@ class Side(enum.Enum):
 
 
 class Order:
-    def __init__(self, ticker, side, size, valid_for_seconds, price=None, stop_loss=None,
-                 take_profit=None):
+    def __init__(self, strategy_name, ticker, side, size, valid_for_seconds, price=None,
+                 stop_loss=None, take_profit=None):
+        self.strategy = strategy_name
         self.ticker = ticker
         self.price = price
         self.side = side
@@ -22,19 +23,22 @@ class Order:
 
 
 class Position(object):
-    def __init__(self, strategy_name=None, order=None, id=None):
+    def __init__(self, strategy_name, ticker, price, side, size, stop_loss=None, take_profit=None):
         self.strategy = strategy_name
-        self.order = order
-        self.trade_id = id
+        self.ticker = ticker
+        self.price = price
+        self.side = side
+        self.size = size
+        self.stop_loss = stop_loss
+        self.take_profit = take_profit
 
     def __eq__(self, other):
         return self.strategy == other.strategy \
-               and self.trade_id == other.trade_id \
-               and self.order == other.order
+               and self.ticker == other.ticker \
+               and self.side == other.side
 
 
 class Signal(object):
-    def __init__(self, strategy, order, exits_position):
-        self.strategy = strategy
+    def __init__(self, order, exits_position):
         self.order = order
         self.exits_position = exits_position

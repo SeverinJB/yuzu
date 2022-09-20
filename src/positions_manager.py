@@ -18,7 +18,7 @@ class PositionsManager(object):
             self.open_position(update['position'])
         elif update['event'] == 'partial_fill':
             remaining_order = self.get_pending_order(update['position'].order.ticker)
-            remaining_order.order.size -= update['position'].order.size
+            remaining_order.size -= update['position'].size
             self.open_position(update['position'])
             self.add_pending_order(remaining_order)
         elif update['event'] in ('canceled', 'rejected'):
@@ -64,7 +64,7 @@ class PositionsManager(object):
 
 
     def open_position(self, position):
-        ticker = position.order.ticker
+        ticker = position.ticker
         self.delete_pending_order(ticker)
         self.__open_positions[ticker] = position
         logger.info(f'Open position: {position}')
@@ -77,10 +77,10 @@ class PositionsManager(object):
             raise Exception(f'PositionsManager: No existing position for {ticker}!')
 
 
-    def add_pending_order(self, position):
-        ticker = position.order.ticker
-        self.__pending_orders[ticker] = position
-        logger.info(f'Open pending order: {position}')
+    def add_pending_order(self, order):
+        ticker = order.ticker
+        self.__pending_orders[ticker] = order
+        logger.info(f'Open pending order: {order}')
 
 
     def delete_pending_order(self, ticker):

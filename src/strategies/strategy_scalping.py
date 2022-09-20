@@ -46,9 +46,9 @@ class StrategyScalping(StrategyBase):
         position = None
         positions_for_strategy = self.get_open_positions()
 
-        for item in positions_for_strategy:
-            if self.__symbol == item.order.ticker:
-                position = item
+        for position in positions_for_strategy:
+            if self.__symbol == position.ticker:
+                position = position
 
         if position is not None:
             current_price = float(self.__datasource.get_latest_trade(self.__symbol).price)
@@ -56,18 +56,18 @@ class StrategyScalping(StrategyBase):
             limit_price = max(cost_basis + 0.01, current_price)
 
             # TODO: Closing order cannot have timeout time
-            order = Order(self.__symbol, 'sell', 0.1, 120, price=limit_price)
+            order = Order(self.name, self.__symbol, 'sell', 0.1, 120, price=limit_price)
             logger.info(f'exit position')
-            return [Signal(self.name, order, True)]
+            return [Signal(order, True)]
 
         elif not self.positions_manager.ticker_is_busy(self.__symbol) and data is not None:
             if len(data) > 20:
                 signal = self.__calc_buy_signal(data)
                 if signal:
                     price = self.__datasource.get_latest_trade(self.__symbol).price
-                    order = Order(self.__symbol, 'buy', 0.1, 120, price=price)
+                    order = Order(self.name, self.__symbol, 'buy', 0.1, 120, price=price)
 
-                    return [Signal(self.name, order, False)]
+                    return [Signal(order, False)]
 
 
     async def get_trade_signals(self):
