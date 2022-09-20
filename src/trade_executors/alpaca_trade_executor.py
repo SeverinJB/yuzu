@@ -50,7 +50,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
 
 
     def cancel_order(self, order):
-        return self.__session.cancel_order(order.id)
+        return self.__session.delete_order(order.id)
 
 
     def cancel_all_orders(self):

@@ -94,7 +94,7 @@ class ScalpAlgo:
 
     def _cancel_order(self):
         if self._order is not None:
-            self._api.cancel_order(self._order.id)
+            self._api.delete_order(self._order.id)
 
     def _calc_buy_signal(self):
         mavg = self._bars.rolling(20).mean().close.values

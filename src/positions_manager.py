@@ -8,25 +8,26 @@ logger = logging.getLogger()
 
 class PositionsManager(object):
     def __init__(self):
-        self.__open_positions = {}  # ticker as key
-        self.__pending_orders = {}  # ticker as key
+        # TODO: Implement new dictionary structure.
+        self.__open_positions = {}  # {'EXECUTOR': {'TICKER': ORDER}, ...}
+        self.__pending_orders = {}  # {'EXECUTOR': {'TICKER': ORDER}, ...}
 
 
     def update_position(self, update):
-        logger.info(f"order update: {update['event']} = {update['position']}")
+        logger.info(f"order update: {update['event']} = {update['order']}")
         if update['event'] == 'fill':
-            self.open_position(update['position'])
+            self.open_position(update['order'])
         elif update['event'] == 'partial_fill':
-            remaining_order = self.get_pending_order(update['position'].ticker)
-            remaining_order.size -= update['position'].size
-            self.open_position(update['position'])
-            self.add_pending_order(remaining_order)
+            remaining_order = self.get_pending_order_for_ticker(update['order'].ticker)
+            remaining_order.size -= update['order'].size
+            self.open_position(update['order'])
+            self.add_order(remaining_order)
         elif update['event'] in ('canceled', 'rejected'):
             if update['event'] == 'rejected':
-                logger.warn(f"Order rejected: current order = {update['position']}")
-            self.delete_pending_order(update['position'].ticker)
+                logger.warn(f"Order rejected: current order = {update['order']}")
+            self.delete_order(update['order'].ticker)
         else:
-            logger.warn(f"Unexpected event: {update['event']} for {update['position']}")
+            logger.warn(f"Unexpected event: {update['event']} for {update['order']}")
 
 
     def open_position_exists_for_ticker(self, ticker):
@@ -38,8 +39,8 @@ class PositionsManager(object):
 
 
     def ticker_is_busy(self, ticker):
-         return self.open_position_exists_for_ticker(ticker) or \
-                self.pending_order_exists_for_ticker(ticker)
+        return self.open_position_exists_for_ticker(ticker) or \
+               self.pending_order_exists_for_ticker(ticker)
 
 
     def get_open_positions_for_strategy(self, strategy_name):
@@ -51,11 +52,11 @@ class PositionsManager(object):
         return positions
 
 
-    def get_open_position(self, ticker):
+    def get_open_position_for_ticker(self, ticker):
         return self.__open_positions[ticker]
 
 
-    def get_pending_order(self, ticker):
+    def get_pending_order_for_ticker(self, ticker):
         return self.__pending_orders[ticker]
 
 
@@ -64,9 +65,10 @@ class PositionsManager(object):
 
 
     def open_position(self, position):
-        # TODO: Implement exception if ticker is busy?
+        # TODO: If ticker already busy for strategy, add new order to existing position.
+        #       However, strategy and executor can only have one position.
         ticker = position.ticker
-        self.delete_pending_order(ticker)
+        self.delete_order(ticker)
         self.__open_positions[ticker] = position
         logger.info(f'Open position: {position}')
 
@@ -78,13 +80,16 @@ class PositionsManager(object):
             raise Exception(f'PositionsManager: No existing position for {ticker}!')
 
 
-    def add_pending_order(self, order):
+    def add_order(self, order):
         ticker = order.ticker
-        self.__pending_orders[ticker] = order
-        logger.info(f'Open pending order: {order}')
+        if ticker in self.__pending_orders:
+            raise Exception(f'PositionsManager: Already pending order for {ticker}!')
+        else:
+            self.__pending_orders[ticker] = order
+            logger.info(f'Open pending order: {order}')
 
 
-    def delete_pending_order(self, ticker):
+    def delete_order(self, ticker):
         if ticker in self.__pending_orders:
             del self.__pending_orders[ticker]
         else:

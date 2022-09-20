@@ -19,7 +19,7 @@ def test_close_positions_tries_to_close_open_position_on_exit_signal(mocker):
     mock_strategy.get_exit_signals.return_value = [ticker]
     mock_strategies_manager.get_strategies.return_value = [mock_strategy]
     mock_positions_manager.open_position_exists_for_ticker.return_value = True
-    mock_positions_manager.get_open_position.return_value = Position('', '')
+    mock_positions_manager.get_open_position_for_ticker.return_value = Position('', '')
     mock_trade_executor.close_position.return_value = True
 
     manager = TradeManager(
@@ -30,7 +30,7 @@ def test_close_positions_tries_to_close_open_position_on_exit_signal(mocker):
     mock_strategies_manager.get_strategies.assert_called_once()
     mock_strategy.get_exit_signals.assert_called_once()
     mock_positions_manager.open_position_exists_for_ticker.assert_called_once_with(ticker)
-    mock_positions_manager.get_open_position.assert_called_once_with(ticker)
+    mock_positions_manager.get_open_position_for_ticker.assert_called_once_with(ticker)
     mock_trade_executor.close_position.assert_called_once_with(trade_id)
     mock_positions_manager.close_position.assert_called_once_with(ticker)
 
@@ -54,7 +54,7 @@ def test_close_does_not_do_anything_if_no_position_for_signal_is_open(mocker):
     mock_strategy.get_exit_signals.assert_called_once()
     mock_positions_manager.open_position_exists_for_ticker.assert_called_once_with(ticker)
 
-    mock_positions_manager.get_open_position.assert_not_called()
+    mock_positions_manager.get_open_position_for_ticker.assert_not_called()
     mock_trade_executor.close_position.assert_not_called()
     mock_positions_manager.close_position.assert_not_called()
 
@@ -69,7 +69,7 @@ def test_close_positions_raises_if_executor_fails_to_close_position(mocker):
     mock_strategy.get_exit_signals.return_value = [ticker]
     mock_strategy_manager.get_strategies.return_value = [mock_strategy]
     mock_positions_manager.open_position_exists_for_ticker.return_value = True
-    mock_positions_manager.get_open_position.return_value = Position('', '', trade_id)
+    mock_positions_manager.get_open_position_for_ticker.return_value = Position('', '', trade_id)
     mock_trade_executor.close_position.return_value = False
 
     manager = TradeManager(

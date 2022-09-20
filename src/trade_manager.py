@@ -56,7 +56,7 @@ class TradeManager(object):
             if self.__positions_manager.ticker_is_busy(ticker):
                 raise Exception("PositionsManager: Trying to open position for busy ticker!")
             else:
-                self.__positions_manager.add_pending_order(Position(order=order))
+                self.__positions_manager.add_order(Position(order=order))
                 order_response = await self.__trade_executor.submit_order(order)
 
             # TODO: Implement update function that switches from pending to fulfilled
@@ -103,8 +103,8 @@ class TradeManager(object):
         for order in self.__positions_manager.get_pending_orders().values():
             if (now - order.submitted_at.tz_convert(tz='America/New_York')
                     > pd.Timedelta(order.valid_for_seconds, "seconds")):
-                self.__trade_executor.cancel_order(order.id)
-                self.__positions_manager.delete_pending_order(order.ticker)
+                self.__trade_executor.delete_order(order.id)
+                self.__positions_manager.delete_order(order.ticker)
 
 
     async def trade(self):
