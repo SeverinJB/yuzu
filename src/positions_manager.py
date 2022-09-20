@@ -17,7 +17,7 @@ class PositionsManager(object):
         if update['event'] == 'fill':
             self.open_position(update['position'])
         elif update['event'] == 'partial_fill':
-            remaining_order = self.get_pending_order(update['position'].order.ticker)
+            remaining_order = self.get_pending_order(update['position'].ticker)
             remaining_order.size -= update['position'].size
             self.open_position(update['position'])
             self.add_pending_order(remaining_order)
@@ -64,6 +64,7 @@ class PositionsManager(object):
 
 
     def open_position(self, position):
+        # TODO: Implement exception if ticker is busy?
         ticker = position.ticker
         self.delete_pending_order(ticker)
         self.__open_positions[ticker] = position
