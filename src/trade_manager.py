@@ -40,11 +40,11 @@ class TradeManager(object):
             # if order_response is not None:
             #     closed_size = order_response.order.size
             #     if closed_size == self.__positions_manager.get_open_position(
-            #             order.ticker_symbol).size:
-            #         self.__positions_manager.close_position(order.ticker_symbol)
+            #             order.ticker).size:
+            #         self.__positions_manager.close_position(order.ticker)
             #     else:
             #         # TODO: Implement and test this method
-            #         self.__positions_manager.update_position(order.ticker_symbol, closed_size)
+            #         self.__positions_manager.update_position(order.ticker, closed_size)
             # else:
             #     # TODO: Decide what to do if position cannot be opened
             #     raise Exception("TradeManager: failed to exit position!")

@@ -60,12 +60,12 @@ class AlpacaTradeExecutor(TradeExecutorBase):
     def __subscribe_trade_updates(self):
         async def on_trade_updates(data):
             logger.info(f'trade_updates {data}')
-            symbol = data.order['symbol']
+            ticker = data.order['symbol']
 
-            if symbol not in self.__trade_updates.keys():
-                self.__trade_updates[symbol] = []
+            if ticker not in self.__trade_updates.keys():
+                self.__trade_updates[ticker] = []
 
-            self.__trade_updates[symbol].append(data)
+            self.__trade_updates[ticker].append(data)
 
         self.session_manager.get_stream().subscribe_trade_updates(on_trade_updates)
 

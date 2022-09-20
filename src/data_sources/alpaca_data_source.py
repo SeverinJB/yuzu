@@ -19,8 +19,8 @@ class AlpacaDataSource(DataSourceBase):
         self.__bars = {} # Key is ticket. Value is list of bars.
 
 
-    def get_latest_trade(self, symbol):
-        return self.__session.get_latest_trade(symbol)
+    def get_latest_trade(self, ticker):
+        return self.__session.get_latest_trade(ticker)
 
 
     def __clean_data(self, data):
