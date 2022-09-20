@@ -10,13 +10,13 @@ logger = logging.getLogger()
 
 
 class StrategyScalping(StrategyBase):
-    def __init__(self, data_source, symbol, positions_manager=None):
+    def __init__(self, data_source, ticker, positions_manager=None):
         super().__init__(positions_manager)
         self.name = "strategy_scalping"
         self.__datasource = data_source
-        self.__symbol = symbol
+        self.__ticker = ticker
 
-        self.__datasource.subscribe_bars(self.__symbol)
+        self.__datasource.subscribe_bars(self.__ticker)
 
 
     def get_open_positions(self):
@@ -47,30 +47,30 @@ class StrategyScalping(StrategyBase):
         positions_for_strategy = self.get_open_positions()
 
         for position in positions_for_strategy:
-            if self.__symbol == position.ticker:
+            if self.__ticker == position.ticker:
                 position = position
 
         if position is not None:
-            current_price = float(self.__datasource.get_latest_trade(self.__symbol).price)
+            current_price = float(self.__datasource.get_latest_trade(self.__ticker).price)
             cost_basis = float(position.avg_entry_price)
             limit_price = max(cost_basis + 0.01, current_price)
 
             # TODO: Closing order cannot have timeout time
-            order = Order(self.name, self.__symbol, 'sell', 0.1, 120, price=limit_price)
+            order = Order(self.name, self.__ticker, 'sell', 0.1, 120, price=limit_price)
             logger.info(f'exit position')
             return [Signal(order, True)]
 
-        elif not self.positions_manager.ticker_is_busy(self.__symbol) and data is not None:
+        elif not self.positions_manager.ticker_is_busy(self.__ticker) and data is not None:
             if len(data) > 20:
                 signal = self.__calc_buy_signal(data)
                 if signal:
-                    price = self.__datasource.get_latest_trade(self.__symbol).price
-                    order = Order(self.name, self.__symbol, 'buy', 0.1, 120, price=price)
+                    price = self.__datasource.get_latest_trade(self.__ticker).price
+                    order = Order(self.name, self.__ticker, 'buy', 0.1, 120, price=price)
 
                     return [Signal(order, False)]
 
 
     async def get_trade_signals(self):
-        data = await self.__datasource.get_latest_bars(self.__symbol)
+        data = await self.__datasource.get_latest_bars(self.__ticker)
         signal = self.__get_signal(data)
         return signal
