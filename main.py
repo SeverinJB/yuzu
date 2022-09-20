@@ -9,7 +9,7 @@ import asyncio
 
 from positions_manager import PositionsManager
 from strategies_manager import StrategiesManager
-from trade_manager import TradeManager
+from trades_manager import TradeManager
 from session_managers.alpaca_session_manager import AlpacaSessionManager
 from trade_executors.alpaca_trade_executor import AlpacaTradeExecutor
 

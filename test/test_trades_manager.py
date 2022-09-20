@@ -3,7 +3,7 @@
 
 import pytest
 
-from trade_manager import TradeManager
+from trades_manager import TradeManager
 from trade_objects import Position
 
 # TODO: Add test for __update_orders()

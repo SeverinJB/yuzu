@@ -15,8 +15,8 @@ class AlpacaDataSource(DataSourceBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
         self.__session = self.session_manager.get_session()
-        self.__database = {}  # Key is ticker.
-        self.__bars = {} # Key is ticket. Value is list of bars.
+        self.__database = {}  # {'TICKER': DATAFRAME, ...}
+        self.__bars = {}  # {'TICKER': [BAR_1, BAR_2, BAR_3, ...], ...}
 
 
     def get_latest_trade(self, ticker):
@@ -58,8 +58,8 @@ class AlpacaDataSource(DataSourceBase):
         async def on_bar(bar):
             if bar:
                 self.__bars[ticker].append(bar)
-                logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close},'
-                            f'length: {len(self.__bars[ticker])}')
+                logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}, '
+                            f'len(database[ticker]): {len(self.__database[ticker].index)}')
 
         self.session_manager.get_stream().subscribe_bars(on_bar, ticker)
 

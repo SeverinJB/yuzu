@@ -3,7 +3,7 @@
 
 import backtrader as bt
 
-from data_analyzer_base import DataAnalyzerBase
+from data_analyser_base import DataAnalyzerBase
 
 class BackTraderDataAnalyzer(DataAnalyzerBase):
     def __init__(self, data):
