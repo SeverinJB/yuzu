@@ -26,19 +26,20 @@ def mock_trade_objects():
     mock_order.valid_for_seconds = '120'
     mock_order.submitted_at = pd.Timestamp('2022-09-16 16:53:00+00:00')
 
-    mock_signal = Signal(mock_order, True)
+    mock_signal_enters = Signal(mock_order, False)
+    mock_signal_exits = Signal(mock_order, True)
 
     mock_position = Position('MOCK_STRATEGY', ticker, '', '', '')
 
     mock_strategy = AsyncMock()
-    mock_strategy.get_trade_signals = AsyncMock(return_value=[mock_signal])
+    mock_strategy.get_trade_signals = AsyncMock(return_value=[mock_signal_enters])
 
-    return mock_order, mock_signal, mock_position
+    return mock_order, mock_signal_enters, mock_signal_exits, mock_position
 
 
 @pytest.fixture
 def mock_strategy(mock_trade_objects):
-    _, mock_signal, _ = mock_trade_objects
+    _, mock_signal, _, _ = mock_trade_objects
 
     mock_strategy = AsyncMock()
     mock_strategy.get_trade_signals = AsyncMock(return_value=[mock_signal])
@@ -56,7 +57,7 @@ def mock_strategies_manager(mocker, mock_strategy):
 
 @pytest.fixture
 def mock_positions_manager(mocker, mock_trade_objects):
-    mock_order, _, mock_position = mock_trade_objects
+    mock_order, _, _, mock_position = mock_trade_objects
     mock_positions_manager = mocker.Mock()
     mock_positions_manager.get_open_position_for_ticker.return_value = mock_position
     mock_positions_manager.get_pending_orders.return_value = {'TICKER': mock_order}
@@ -109,7 +110,7 @@ def test_check_for_order_updates_calls_function_update_position(test_trades_mana
 
 @pytest.mark.asyncio
 async def test_collect_trade_signals_returns_signals_list(test_trades_manager, mock_trade_objects):
-    _, mock_signal, _ = mock_trade_objects
+    _, mock_signal, _, _ = mock_trade_objects
     assert await test_trades_manager._TradesManager__collect_trade_signals() == [mock_signal]
 
 
@@ -117,6 +118,20 @@ async def test_collect_trade_signals_returns_signals_list(test_trades_manager, m
 async def test_collect_trade_signals_returns_empty_list_if_none(test_trades_manager, mock_strategy):
     mock_strategy.get_trade_signals = AsyncMock(return_value=None)
     assert await test_trades_manager._TradesManager__collect_trade_signals() == []
+
+
+@pytest.mark.asyncio
+async def test_classify_signals_returns_empty_list_if_no_signal(test_trades_manager):
+    signals = []
+    assert await test_trades_manager._TradesManager__classify_signals(signals) == ([], [])
+
+
+@pytest.mark.asyncio
+async def test_classify_signals_returns_lists_with_signals(test_trades_manager, mock_trade_objects):
+    _, mock_signal_enters, mock_signal_exits, _ = mock_trade_objects
+    signals = [mock_signal_enters, mock_signal_exits]
+    expected_return = ([mock_signal_exits.order], [mock_signal_enters.order])
+    assert await test_trades_manager._TradesManager__classify_signals(signals) == expected_return
 
 
 @pytest.mark.asyncio

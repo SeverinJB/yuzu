@@ -5,8 +5,6 @@ import logging
 import pandas as pd
 import asyncio
 
-from trade_objects import Position
-
 logger = logging.getLogger()
 
 
