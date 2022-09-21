@@ -49,8 +49,9 @@ class AlpacaTradeExecutor(TradeExecutorBase):
             return
 
 
-    def cancel_order(self, order):
-        return self.__session.delete_order(order.id)
+    async def cancel_order(self, order):
+        # FIXME: Returns 200 if cancelling successful, error if not.
+        return self.__session.cancel_order(order.id)
 
 
     def cancel_all_orders(self):

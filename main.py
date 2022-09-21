@@ -9,7 +9,7 @@ import asyncio
 
 from positions_manager import PositionsManager
 from strategies_manager import StrategiesManager
-from trades_manager import TradeManager
+from trades_manager import TradesManager
 from session_managers.alpaca_session_manager import AlpacaSessionManager
 from trade_executors.alpaca_trade_executor import AlpacaTradeExecutor
 
@@ -33,7 +33,7 @@ async def main():
 
     positionsManager = PositionsManager()
     strategiesManager = StrategiesManager(alpacaSession, positionsManager)
-    tradeManager = TradeManager(alpacaTrade, strategiesManager, positionsManager)
+    tradeManager = TradesManager(alpacaTrade, strategiesManager, positionsManager)
 
     while True:
         await tradeManager.trade()

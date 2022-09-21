@@ -8,6 +8,7 @@ from data_sources.alpaca_data_source import AlpacaDataSource
 
 logger = logging.getLogger()
 
+
 class StrategiesManager(object):
     def __init__(self, session_manager, positions_manager):
         self.__session_manager = session_manager

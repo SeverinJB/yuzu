@@ -59,7 +59,7 @@ class AlpacaDataSource(DataSourceBase):
             if bar:
                 self.__bars[ticker].append(bar)
                 logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}, '
-                            f'len(database[ticker]): {len(self.__database[ticker].index)}')
+                            f'len(database[{ticker}]): {len(self.__database[ticker].index)}')
 
         self.session_manager.get_stream().subscribe_bars(on_bar, ticker)
 

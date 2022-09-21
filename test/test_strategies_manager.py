@@ -20,20 +20,20 @@ def test_strategies_manager(mocker):
     return manager
 
 
-def test_get_strategy_returns_correct_strategy(test_strategies_manager):
-    assert test_strategies_manager.get_strategy('MY_FIRST_STRATEGY') == 'mock_first_strategy'
+def test_get_strategy_returns_correct_strategy(mock_strategies_manager):
+    assert mock_strategies_manager.get_strategy('MY_FIRST_STRATEGY') == 'mock_first_strategy'
 
 
-def test_get_strategies_returns_strategies(test_strategies_manager):
-    expected_return = test_strategies_manager._StrategiesManager__strategies
-    assert test_strategies_manager.get_strategies() == expected_return
+def test_get_strategies_returns_strategies(mock_strategies_manager):
+    expected_return = mock_strategies_manager._StrategiesManager__strategies
+    assert mock_strategies_manager.get_strategies() == expected_return
 
 
-def test_select_strategies_creates_dict_of_strategies(test_strategies_manager):
+def test_select_strategies_creates_dict_of_strategies(mock_strategies_manager):
     # FIXME: How do you really test a function with changing output?
-    test_strategies_manager._StrategiesManager__strategies = None
+    mock_strategies_manager._StrategiesManager__strategies = None
 
-    test_strategies_manager._StrategiesManager__strategies = \
-        test_strategies_manager._StrategiesManager__select_strategies()
+    mock_strategies_manager._StrategiesManager__strategies = \
+        mock_strategies_manager._StrategiesManager__select_strategies()
 
-    assert isinstance(test_strategies_manager._StrategiesManager__strategies, dict)
+    assert isinstance(mock_strategies_manager._StrategiesManager__strategies, dict)

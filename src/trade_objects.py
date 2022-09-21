@@ -11,7 +11,7 @@ class Side(enum.Enum):
 
 class Order:
     def __init__(self, strategy_name, ticker, side, size, valid_for_seconds, price=None,
-                 stop_loss=None, take_profit=None):
+                 stop_loss=None, take_profit=None, submitted_at=None):
         self.strategy = strategy_name
         self.ticker = ticker
         self.price = price
@@ -20,6 +20,7 @@ class Order:
         self.stop_loss = stop_loss
         self.take_profit = take_profit
         self.valid_for_seconds = valid_for_seconds
+        self.submitted_at = submitted_at
 
 
 class Position(object):
