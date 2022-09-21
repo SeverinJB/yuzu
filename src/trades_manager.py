@@ -57,14 +57,7 @@ class TradesManager(object):
                 order.submitted_at = self.__now()
                 self.__positions_manager.add_order(order)
                 order_response = await self.__trade_executor.submit_order(order)
-
-            # TODO: Implement update function that switches from pending to fulfilled
-            # if order_response is not None:
-            #     self.__positions_manager.open_position(Position(order=order))
-            # else:
-            #     # TODO: Decide what to do if position cannot be opened
-            #     # raise Exception("TradeManager: failed to enter position!")
-            #     pass
+                return order_response
 
 
     async def __classify_signals(self, signals):
@@ -94,7 +87,7 @@ class TradesManager(object):
         for order in self.__positions_manager.get_pending_orders().values():
             order_updates = self.__trade_executor.get_latest_order_updates(order.ticker)
             for update in order_updates:
-                self.__positions_manager.update_position(update)
+                self.__positions_manager.update_position(order.ticker, update)
 
 
     async def __time_out_pending_orders(self):
@@ -126,7 +119,7 @@ class TradesManager(object):
             #    self._submit_sell(bailout=True)
 
         else:
-            # self.__check_for_order_updates()
+            self.__check_for_order_updates()
             # await self.__time_out_pending_orders()
 
             trade_signals = await self.__collect_trade_signals()

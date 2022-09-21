@@ -33,7 +33,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
         amount = int(1000 / order.price)
 
         try:
-            response = await self.__session.submit_order(
+            response = self.__session.submit_order(
                 symbol=order.ticker,
                 side=order.side,
                 type='limit',

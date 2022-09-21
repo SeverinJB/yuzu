@@ -22,6 +22,17 @@ class Order:
         self.valid_for_seconds = valid_for_seconds
         self.submitted_at = submitted_at
 
+    def convert_to_position(self):
+        Position(
+            strategy_name=self.strategy,
+            ticker=self.ticker,
+            price=self.price,
+            side=self.side,
+            size=self.size,
+            stop_loss=self.stop_loss,
+            take_profit=self.take_profit
+        )
+
 
 class Position(object):
     def __init__(self, strategy_name, ticker, price, side, size, stop_loss=None, take_profit=None):

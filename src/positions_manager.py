@@ -13,10 +13,11 @@ class PositionsManager(object):
         self.__pending_orders = {}  # {'EXECUTOR': {'TICKER': ORDER}, ...}
 
 
-    def update_position(self, update):
+    def update_position(self, ticker, update):
         logger.info(f"order update: {update['event']} = {update['order']}")
         if update['event'] == 'fill':
-            self.open_position(update['order'])
+            position = self.get_pending_order_for_ticker(ticker).convert_to_position()
+            self.open_position(position)
         elif update['event'] == 'partial_fill':
             remaining_order = self.get_pending_order_for_ticker(update['order'].ticker)
             remaining_order.size -= update['order'].size

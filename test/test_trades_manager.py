@@ -12,8 +12,6 @@ from trade_objects import Order, Position, Signal
 # TODO: Add test for __outofmarket
 # TODO: Add test for __exit_positions
 # TODO: Add test for __enter_positions
-# TODO: Add test for __classify_signals
-# TODO: Add test for __collect_trade_signals
 # TODO: Clean up test (refactor code duplication)
 
 
@@ -132,6 +130,19 @@ async def test_classify_signals_returns_lists_with_signals(test_trades_manager, 
     signals = [mock_signal_enters, mock_signal_exits]
     expected_return = ([mock_signal_exits.order], [mock_signal_enters.order])
     assert await test_trades_manager._TradesManager__classify_signals(signals) == expected_return
+
+
+@pytest.mark.asyncio
+async def test_enter_positions_calls_positions_manager(test_trades_manager, mock_trade_objects):
+    _, mock_signal_enters, _, _ = mock_trade_objects
+    test_trades_manager._TradesManager__positions_manager.ticker_is_busy.return_value = False
+
+    orders = [mock_signal_enters.order]
+    response = await test_trades_manager._TradesManager__enter_positions(orders)
+
+    test_trades_manager._TradesManager__positions_manager.ticker_is_busy.assert_called()
+    test_trades_manager._TradesManager__positions_manager.add_order.assert_called()
+    assert response is None
 
 
 @pytest.mark.asyncio
