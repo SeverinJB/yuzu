@@ -57,7 +57,7 @@ class TradesManager(object):
                 raise Exception("PositionsManager: Trying to open position for busy ticker!")
             else:
                 order.submitted_at = self.__now()
-                self.__positions_manager.add_order(Position(order=order))
+                self.__positions_manager.add_order(order)
                 order_response = await self.__trade_executor.submit_order(order)
 
             # TODO: Implement update function that switches from pending to fulfilled
@@ -93,7 +93,7 @@ class TradesManager(object):
 
 
     def __check_for_order_updates(self):
-        for order in self.__positions_manager.get_pending_orders():
+        for order in self.__positions_manager.get_pending_orders().values():
             order_updates = self.__trade_executor.get_latest_order_updates(order.ticker)
             for update in order_updates:
                 self.__positions_manager.update_position(update)
@@ -101,7 +101,7 @@ class TradesManager(object):
 
     async def __time_out_pending_orders(self):
         # FIXME: Ensure that cancel_order response is 200 or error
-        # Cancelling orders is important and needs to be done before a ticker is freed.
+        #        Cancelling orders is important and needs to be done before a ticker is freed.
         now = self.__now()
         for order in self.__positions_manager.get_pending_orders().values():
             submitted_at = order.submitted_at.tz_convert(tz='America/New_York')
