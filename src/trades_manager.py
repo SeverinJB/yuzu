@@ -20,11 +20,15 @@ class TradesManager(object):
 
 
     def __outofmarket(self):
+        today = self.__now()
         opening_time = pd.Timestamp('09:30').time()
-        now = self.__now().floor('1min').time()
+        now = today.floor('1min').time()
         closure_time = pd.Timestamp('16:00').time()
 
-        market_closed = (opening_time >= now) or (closure_time <= now)
+        if (opening_time >= now) or (closure_time <= now) or today.weekday() >= 5:
+            market_closed = True
+        else:
+            market_closed = False
 
         return market_closed
 
@@ -49,6 +53,8 @@ class TradesManager(object):
 
 
     async def __enter_positions(self, entry_orders):
+        # FIXME:    Function should release ticker if submit_order failed
+        #           To achieve the above submit_order must return standardised values
         for order in entry_orders:
             ticker = order.ticker
             if self.__positions_manager.ticker_is_busy(ticker):
@@ -91,8 +97,8 @@ class TradesManager(object):
 
 
     async def __time_out_pending_orders(self):
-        # FIXME: Ensure that cancel_order response is 200 or error
-        #        Cancelling orders is important and needs to be done before a ticker is freed.
+        # FIXME:    Ensure that cancel_order response is 200 or error
+        #           Cancelling orders is important and needs to be done before a ticker is freed.
         now = self.__now()
         for order in self.__positions_manager.get_pending_orders().values():
             submitted_at = order.submitted_at.tz_convert(tz='America/New_York')

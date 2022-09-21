@@ -66,7 +66,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
             if ticker not in self.__trade_updates.keys():
                 self.__trade_updates[ticker] = []
 
-            self.__trade_updates[ticker].append(data)
+            self.__trade_updates[ticker].append({'event': data.event, 'order': data.order})
 
         self.session_manager.get_stream().subscribe_trade_updates(on_trade_updates)
 

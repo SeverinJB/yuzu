@@ -11,7 +11,6 @@ from trade_objects import Order, Position, Signal
 
 # TODO: Add test for __outofmarket
 # TODO: Add test for __exit_positions
-# TODO: Add test for __enter_positions
 # TODO: Clean up test (refactor code duplication)
 
 
@@ -67,7 +66,7 @@ def mock_positions_manager(mocker, mock_trade_objects):
 def test_trade_executor(mocker):
     mock_trade_executor = mocker.Mock()
     mock_trade_executor.close_position.return_value = True
-    mock_trade_executor.submit_order = AsyncMock(return_value=None)
+    mock_trade_executor.submit_order = AsyncMock(return_value='order')
     mock_trade_executor.cancel_order = AsyncMock(return_value=200)
     mock_trade_executor.get_latest_order_updates.return_value = ['list', 'updates']
 
@@ -133,7 +132,7 @@ async def test_classify_signals_returns_lists_with_signals(test_trades_manager, 
 
 
 @pytest.mark.asyncio
-async def test_enter_positions_calls_positions_manager(test_trades_manager, mock_trade_objects):
+async def test_enter_positions_submits_order(test_trades_manager, mock_trade_objects):
     _, mock_signal_enters, _, _ = mock_trade_objects
     test_trades_manager._TradesManager__positions_manager.ticker_is_busy.return_value = False
 
@@ -142,7 +141,17 @@ async def test_enter_positions_calls_positions_manager(test_trades_manager, mock
 
     test_trades_manager._TradesManager__positions_manager.ticker_is_busy.assert_called()
     test_trades_manager._TradesManager__positions_manager.add_order.assert_called()
-    assert response is None
+
+    assert response == 'order'
+
+
+@pytest.mark.asyncio
+async def test_exit_positions_submits_order(test_trades_manager, mock_trade_objects):
+    # TODO: Implement test
+    _, _, mock_signal_exits, _ = mock_trade_objects
+
+    orders = [mock_signal_exits.order]
+    await test_trades_manager._TradesManager__exit_positions(orders)
 
 
 @pytest.mark.asyncio
@@ -208,7 +217,7 @@ def test_close_positions_raises_if_executor_fails_to_close_position(mocker):
     mock_positions_manager.close_position.assert_not_called()
 
 
-def test_opene_positions_tries_to_open_position_on_entry_signal(mocker):
+def test_open_positions_tries_to_open_position_on_entry_signal(mocker):
     mock_trade_executor = mocker.Mock()
     mock_strategy_manager = mocker.Mock()
     mock_positions_manager = mocker.Mock()

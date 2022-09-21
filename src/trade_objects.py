@@ -23,7 +23,7 @@ class Order:
         self.submitted_at = submitted_at
 
     def convert_to_position(self):
-        Position(
+        position = Position(
             strategy_name=self.strategy,
             ticker=self.ticker,
             price=self.price,
@@ -32,6 +32,8 @@ class Order:
             stop_loss=self.stop_loss,
             take_profit=self.take_profit
         )
+
+        return position
 
 
 class Position(object):
