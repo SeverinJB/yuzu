@@ -28,9 +28,6 @@ def mock_trade_objects():
 
     mock_position = Position('MOCK_STRATEGY', ticker, '', '', '')
 
-    mock_strategy = AsyncMock()
-    mock_strategy.get_trade_signals = AsyncMock(return_value=[mock_signal_enters])
-
     return mock_order, mock_signal_enters, mock_signal_exits, mock_position
 
 
@@ -155,15 +152,13 @@ async def test_exit_positions_submits_order(test_trades_manager, mock_trade_obje
 
 
 @pytest.mark.asyncio
-async def test_close_positions_tries_to_close_open_position_on_exit_signal(mocker, test_instances):
-    trades_manager, trade_executor, positions_manager, strategies_manager, strategy, signal \
-        = test_instances
-    ticker = 'MY_TICKER'
+async def test_close_positions_tries_to_close_open_position_on_exit_signal(test_trades_manager,
+                                                                           mock_strategy):
+    await test_trades_manager.trade()
 
-    await trades_manager.trade()
-
+    strategies_manager = test_trades_manager._TradesManager__strategies_manager
     strategies_manager.get_strategies.assert_called_once()
-    strategy.get_trade_signals.assert_called()
+    mock_strategy.get_trade_signals.assert_called()
     # positions_manager.open_position_exists_for_ticker.assert_called_once_with(ticker)
     # positions_manager.get_open_position_for_ticker.assert_called_once_with(ticker)
     # trade_executor.close_position.assert_called_once_with(trade_id)

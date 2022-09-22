@@ -72,7 +72,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
 
 
     def get_latest_order_updates(self, ticker):
-        if self.__trade_updates[ticker]:
+        if ticker in self.__trade_updates.keys():
             updates = self.__trade_updates[ticker]
             del self.__trade_updates[ticker]
             return updates

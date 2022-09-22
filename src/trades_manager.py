@@ -90,7 +90,7 @@ class TradesManager(object):
 
 
     def __check_for_order_updates(self):
-        for order in self.__positions_manager.get_pending_orders().values():
+        for order in list(self.__positions_manager.get_pending_orders().values()):
             order_updates = self.__trade_executor.get_latest_order_updates(order.ticker)
             for update in order_updates:
                 self.__positions_manager.update_position(order.ticker, update)
