@@ -1,9 +1,9 @@
-# Copyright Burg&Biondi 2020
-# Any unauthorized usage forbidden
+# Copyright Yuzu 2022
+# Any unauthorised usage forbidden
 
 import pytest
 import pandas as pd
-from asyncmock import AsyncMock
+from mock import AsyncMock
 
 from trades_manager import TradesManager
 from trade_objects import Order, Position, Signal
@@ -153,14 +153,17 @@ async def test_exit_positions_submits_order(test_trades_manager, mock_trade_obje
 
 @pytest.mark.asyncio
 async def test_close_positions_tries_to_close_open_position_on_exit_signal(test_trades_manager,
-                                                                           mock_strategy):
+                                                                           mock_strategy, mock_trade_objects):
+    mock_order, _, _, _ = mock_trade_objects
     await test_trades_manager.trade()
 
     strategies_manager = test_trades_manager._TradesManager__strategies_manager
+    positions_manager = test_trades_manager._TradesManager__positions_manager
+
     strategies_manager.get_strategies.assert_called_once()
-    mock_strategy.get_trade_signals.assert_called()
-    # positions_manager.open_position_exists_for_ticker.assert_called_once_with(ticker)
-    # positions_manager.get_open_position_for_ticker.assert_called_once_with(ticker)
+    mock_strategy.get_trade_signals.assert_called_once()
+    positions_manager.ticker_is_busy.assert_called_once_with(mock_order.ticker)
+    positions_manager.get_open_position_for_ticker.assert_called_once_with(mock_order.ticker)
     # trade_executor.close_position.assert_called_once_with(trade_id)
     # positions_manager.close_position.assert_called_once_with(ticker)
 
@@ -247,10 +250,10 @@ def test_open_positions_tries_to_open_position_on_entry_signal(mocker):
         Position(strategy_name, mock_order_response.order, mock_order_response.id))
 
 
-def test_open_positions_does_nothing_if_ticker_already_busy(mocker):
-    mock_trade_executor = mocker.Mock()
-    mock_strategy_manager = mocker.Mock()
-    mock_positions_manager = mocker.Mock()
+def test_open_positions_does_nothing_if_ticker_already_busy(test_trades_manager):
+    trade_executor = test_trades_manager._TradesManager__trade_executor
+    strategies_manager= test_trades_manager._TradesManager__strategies_manager
+    positions_manager = test_trades_manager._TradesManager__positions_manager
 
     ticker = 'TICKER'
     mock_strategy = mocker.Mock()
@@ -258,19 +261,19 @@ def test_open_positions_does_nothing_if_ticker_already_busy(mocker):
     mock_order.ticker = ticker
 
     mock_strategy.get_entry_signals.return_value = [mock_order]
-    mock_strategy_manager.get_strategies.return_value = [mock_strategy]
-    mock_positions_manager.ticker_is_busy.return_value = True
+    strategies_manager.get_strategies.return_value = [mock_strategy]
+    positions_manager.ticker_is_busy.return_value = True
 
     manager = TradesManager(
-        mock_trade_executor, mock_strategy_manager, mock_positions_manager)
+        trade_executor, strategies_manager, positions_manager)
     mocker.patch('trade_manager.TradeManager._TradeManager__close_positions')
     manager.trade()
 
-    mock_strategy_manager.get_strategies.assert_called_once()
+    strategies_manager.get_strategies.assert_called_once()
     mock_strategy.get_entry_signals.assert_called_once()
-    mock_positions_manager.ticker_is_busy.assert_called_once_with(ticker)
-    mock_trade_executor.submit_order.assert_not_called()
-    mock_positions_manager.open_position.assert_not_called()
+    positions_manager.ticker_is_busy.assert_called_once_with(ticker)
+    trade_executor.submit_order.assert_not_called()
+    positions_manager.open_position.assert_not_called()
 
 
 def test_open_positions_raise_exception_if_executor_fails_to_open_position(mocker):
