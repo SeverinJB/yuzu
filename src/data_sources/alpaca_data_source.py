@@ -58,6 +58,8 @@ class AlpacaDataSource(DataSourceBase):
         async def on_bar(bar):
             if bar:
                 self.__bars[ticker].append(bar)
+
+                # bar.timestamp is one minute behind __now() as bar concerns previous minute.
                 logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}, '
                             f'len(database[{ticker}]): {len(self.__database[ticker].index)}')
 

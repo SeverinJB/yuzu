@@ -64,6 +64,8 @@ class StrategyScalping(StrategyBase):
             if len(data) > 20:
                 signal = self.__calc_buy_signal(data)
                 if signal:
+                    # FIXME:    Sub-penny increment regulations will likely require to round up
+                    #           any prices which are below one penny (e.g. .005 to .01)
                     price = self.__datasource.get_latest_trade(self.__ticker).price
                     order = Order(self.name, self.__ticker, 'buy', 0.1, 120, price=price)
 
