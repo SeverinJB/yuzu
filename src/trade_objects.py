@@ -37,7 +37,8 @@ class Order:
 
 
 class Position(object):
-    def __init__(self, strategy_name, ticker, price, side, size, stop_loss=None, take_profit=None):
+    def __init__(self, strategy_name, ticker, price, side, size, stop_loss=None, take_profit=None,
+                 avg_entry_price=None):
         self.strategy = strategy_name
         self.ticker = ticker
         self.price = price
@@ -45,6 +46,7 @@ class Position(object):
         self.size = size
         self.stop_loss = stop_loss
         self.take_profit = take_profit
+        self.avg_entry_price = avg_entry_price  # see #22
 
     def __eq__(self, other):
         return self.strategy == other.strategy \

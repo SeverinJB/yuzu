@@ -59,7 +59,7 @@ class AlpacaDataSource(DataSourceBase):
             if bar:
                 self.__bars[ticker].append(bar)
 
-                # bar.timestamp is one minute behind __now() as bar concerns previous minute.
+                # bar.timestamp is one minute behind now as bar concerns previous minute (see #19)
                 logger.info(f'New bar: {pd.Timestamp(bar.timestamp)}, close: {bar.close}, '
                             f'len(database[{ticker}]): {len(self.__database[ticker].index)}')
 
