@@ -30,10 +30,10 @@ class AlpacaTradeExecutor(TradeExecutorBase):
 
 
     async def submit_order(self, order):
-        amount = int(1000 / order.price)
+        if order.price > 1:  # Fixes #21
+            order.price = round(order.price, 2)
 
-        # FIXME:    Sub-penny increment regulations will likely require to round up
-        #           any prices which are below one penny (e.g. .005 to .01) (see #21)
+        amount = int(1000 / order.price)
 
         try:
             response = self.__session.submit_order(
