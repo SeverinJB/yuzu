@@ -12,7 +12,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
         self.__session = session_manager.get_session()
-        self.__trade_updates = {}  # Key is ticker. Value is list of updates.
+        self.__trade_updates = {}  # {'TICKER': [UPDATE_1, UPDATE_2, ...], ...}
 
         self.__subscribe_trade_updates()
 
@@ -30,7 +30,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
 
 
     async def submit_order(self, order):
-        if order.price > 1:  # Fixes #21
+        if order.price > 1:  # #21
             order.price = round(order.price, 2)
 
         amount = int(1000 / order.price)

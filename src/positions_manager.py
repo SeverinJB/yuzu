@@ -18,7 +18,7 @@ class PositionsManager(object):
 
         if update['event'] == 'fill':
             position = self.get_pending_order_for_ticker(ticker).convert_to_position()
-            position.avg_entry_price = update['order']['filled_avg_price']  # Fix for bug #22
+            position.avg_entry_price = update['order']['filled_avg_price']  # #22
 
             self.open_position(position)
 
@@ -27,7 +27,7 @@ class PositionsManager(object):
             remaining_order.size -= update['order'].size
 
             position = self.get_pending_order_for_ticker(ticker).convert_to_position()
-            position.avg_entry_price = update['order']['filled_avg_price']  # Fix for bug #22
+            position.avg_entry_price = update['order']['filled_avg_price']  # #22
 
             self.open_position(position)
             self.add_order(remaining_order)
@@ -35,6 +35,7 @@ class PositionsManager(object):
         elif update['event'] in ('canceled', 'rejected'):
             if update['event'] == 'rejected':
                 logger.warn(f"Order rejected: current order = {update['order']}")
+
             self.delete_order(update['order'].ticker)
 
         else:

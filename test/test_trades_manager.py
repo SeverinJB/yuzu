@@ -153,7 +153,8 @@ async def test_exit_positions_submits_order(test_trades_manager, mock_trade_obje
 
 @pytest.mark.asyncio
 async def test_close_positions_tries_to_close_open_position_on_exit_signal(test_trades_manager,
-                                                                           mock_strategy, mock_trade_objects):
+                                                                           mock_strategy,
+                                                                           mock_trade_objects):
     mock_order, _, _, _ = mock_trade_objects
     await test_trades_manager.trade()
 
