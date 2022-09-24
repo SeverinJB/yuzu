@@ -23,10 +23,11 @@ class PositionsManager(object):
             self.open_position(position)
 
         elif update['event'] == 'partial_fill':
-            remaining_order = self.get_pending_order_for_ticker(update['order'].ticker)
-            remaining_order.size -= update['order'].size
+            remaining_order = self.get_pending_order_for_ticker(ticker)
+            remaining_order.size -= int(update['order']['filled_qty'])  
 
             position = self.get_pending_order_for_ticker(ticker).convert_to_position()
+            position.size = int(update['order']['filled_qty'])
             position.avg_entry_price = update['order']['filled_avg_price']  # #22
 
             self.open_position(position)
