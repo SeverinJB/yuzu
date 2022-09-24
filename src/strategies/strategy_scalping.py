@@ -55,7 +55,7 @@ class StrategyScalping(StrategyBase):
             cost_basis = float(position.avg_entry_price)
             limit_price = max(cost_basis + 0.01, current_price)
 
-            # TODO: Closing order cannot have timeout time
+            # FIXME: Closing order cannot have timeout time
             order = Order(self.name, self.__ticker, 'sell', 0.1, 120, price=limit_price)
             logger.info(f'exit position')
             return [Signal(order, True)]

@@ -24,7 +24,7 @@ class PositionsManager(object):
 
         elif update['event'] == 'partial_fill':
             remaining_order = self.get_pending_order_for_ticker(ticker)
-            remaining_order.size -= int(update['order']['filled_qty'])  
+            remaining_order.size -= int(update['order']['filled_qty'])
 
             position = self.get_pending_order_for_ticker(ticker).convert_to_position()
             position.size = int(update['order']['filled_qty'])
@@ -37,7 +37,7 @@ class PositionsManager(object):
             if update['event'] == 'rejected':
                 logger.warn(f"Order rejected: current order = {update['order']}")
 
-            self.delete_order(update['order'].ticker)
+            self.delete_order(ticker)
 
         else:
             logger.warn(f"Unexpected event: {update['event']} for {update['order']}")
