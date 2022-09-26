@@ -31,6 +31,8 @@ class PositionsManager(object):
                     else:
                         self.open_position(position)
 
+                    self.delete_order(ticker)
+
                 elif event == 'partial_fill':
                     remaining_order = pending_order
                     remaining_order.size -= int(order_update['filled_qty'])
@@ -44,6 +46,7 @@ class PositionsManager(object):
                     else:
                         self.open_position(position)
 
+                    self.delete_order(ticker)
                     self.add_order(remaining_order)
 
                 elif event in ('canceled', 'rejected'):
@@ -70,11 +73,11 @@ class PositionsManager(object):
 
 
     def open_position_exists_for_ticker(self, ticker):
-        return ticker in self.__open_positions.keys()
+        return ticker in self.__open_positions
 
 
     def pending_order_exists_for_ticker(self, ticker):
-        return ticker in self.__pending_orders.keys()
+        return ticker in self.__pending_orders
 
 
     def ticker_is_busy(self, ticker):
@@ -92,14 +95,14 @@ class PositionsManager(object):
 
 
     def get_open_position_for_ticker(self, ticker):
-        if ticker in self.__open_positions.keys():
+        if ticker in self.__open_positions:
             return self.__open_positions[ticker]
         else:
             return None
 
 
     def get_pending_order_for_ticker(self, ticker):
-        if ticker in self.__pending_orders.keys():
+        if ticker in self.__pending_orders:
             return self.__pending_orders[ticker]
         else:
             return None
@@ -114,10 +117,7 @@ class PositionsManager(object):
 
 
     def open_position(self, position):
-        # TODO: If ticker already busy for strategy, add new order to existing position.
-        #       However, strategy and executor can only have one position.
         ticker = position.ticker
-        self.delete_order(ticker)
         self.__open_positions[ticker] = position
         logger.info(f'Open position: {position}')
 

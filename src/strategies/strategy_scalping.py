@@ -44,22 +44,18 @@ class StrategyScalping(StrategyBase):
 
 
     def __get_signal(self, data):
-        position = None
-        positions_for_strategy = self.get_open_positions()
+        open_position_exists = self.positions_manager.open_position_exists_for_ticker(self.__ticker)
+        no_pending_order = not self.positions_manager.pending_order_exists_for_ticker(self.__ticker)
 
-        for position in positions_for_strategy:
-            if self.__ticker == position.ticker:
-                if not self.positions_manager.pending_order_exists_for_ticker(self.__ticker):
-                    position = position
-
-        if position is not None:
+        if open_position_exists and no_pending_order:
+            position = self.positions_manager.get_open_position_for_ticker(self.__ticker)
             current_price = float(self.__datasource.get_latest_trade(self.__ticker).price)
             cost_basis = float(position.avg_entry_price)
-            limit_price = max(cost_basis + 0.01, current_price)
+            price = max(cost_basis + 0.01, current_price)
 
             # FIXME: Closing order cannot have timeout time
-            order = Order(self.name, self.broker, self.__ticker, 'sell', 0.1, 120,
-                          price=limit_price)
+            order = Order(self.name, self.broker, self.__ticker,
+                          'sell', 0.1, 120, price=price)
             logger.info(f'exit position')
             return [Signal(order, True)]
 
@@ -68,8 +64,8 @@ class StrategyScalping(StrategyBase):
                 signal = self.__calc_buy_signal(data)
                 if signal:
                     price = self.__datasource.get_latest_trade(self.__ticker).price
-                    order = Order(self.name, self.broker, self.__ticker, 'buy', 0.1, 120,
-                                  price=price)
+                    order = Order(self.name, self.broker, self.__ticker,
+                                  'buy', 0.1, 120, price=price)
 
                     return [Signal(order, False)]
 
