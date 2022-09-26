@@ -49,7 +49,8 @@ class StrategyScalping(StrategyBase):
 
         for position in positions_for_strategy:
             if self.__ticker == position.ticker:
-                position = position
+                if not self.positions_manager.pending_order_exists_for_ticker(self.__ticker):
+                    position = position
 
         if position is not None:
             current_price = float(self.__datasource.get_latest_trade(self.__ticker).price)

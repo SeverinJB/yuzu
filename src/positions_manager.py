@@ -70,11 +70,11 @@ class PositionsManager(object):
 
 
     def open_position_exists_for_ticker(self, ticker):
-        return ticker in self.__open_positions
+        return ticker in self.__open_positions.keys()
 
 
     def pending_order_exists_for_ticker(self, ticker):
-        return ticker in self.__pending_orders
+        return ticker in self.__pending_orders.keys()
 
 
     def ticker_is_busy(self, ticker):
