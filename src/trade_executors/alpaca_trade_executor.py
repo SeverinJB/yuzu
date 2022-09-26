@@ -9,10 +9,11 @@ logger = logging.getLogger()
 
 
 class AlpacaTradeExecutor(TradeExecutorBase):
-    def __init__(self, session_manager):
+    def __init__(self, session_manager, positions_manager):
         super().__init__(session_manager)
+        self.name = 'alpaca_executor'
         self.__session = session_manager.get_session()
-        self.__trade_updates = {}  # {'TICKER': [UPDATE_1, UPDATE_2, ...], ...}
+        self.__positions_manager = positions_manager
 
         self.__subscribe_trade_updates()
 
@@ -30,6 +31,8 @@ class AlpacaTradeExecutor(TradeExecutorBase):
 
 
     async def submit_order(self, order):
+        self.__positions_manager.add_order(order)
+
         if order.price > 1:  # #21
             order.price = round(order.price, 2)
 
@@ -45,6 +48,12 @@ class AlpacaTradeExecutor(TradeExecutorBase):
                 limit_price=order.price,
             )
             logger.info(f'submitted order {order.ticker}')
+
+            if response["id"]:
+                order.broker_order_id = response["id"]
+            else:
+                self.__positions_manager.delete_order(order.ticker)
+
             return response
 
         except Exception as e:
@@ -64,20 +73,6 @@ class AlpacaTradeExecutor(TradeExecutorBase):
     def __subscribe_trade_updates(self):
         async def on_trade_updates(data):
             logger.info(f'trade_updates {data}')
-            ticker = data.order['symbol']
-
-            if ticker not in self.__trade_updates.keys():
-                self.__trade_updates[ticker] = []
-
-            self.__trade_updates[ticker].append({'event': data.event, 'order': data.order})
+            self.__positions_manager.update_order(data.event, data.order)
 
         self.session_manager.get_stream().subscribe_trade_updates(on_trade_updates)
-
-
-    def get_latest_order_updates(self, ticker):
-        if ticker in self.__trade_updates.keys():
-            updates = self.__trade_updates[ticker]
-            del self.__trade_updates[ticker]
-            return updates
-        else:
-            return None

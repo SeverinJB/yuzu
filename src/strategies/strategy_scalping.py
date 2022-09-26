@@ -1,5 +1,5 @@
 # Copyright Yuzu Trading 2022
-# Any unauthorized usage forbidden
+# Any unauthorised usage forbidden
 
 import logging
 
@@ -10,10 +10,11 @@ logger = logging.getLogger()
 
 
 class StrategyScalping(StrategyBase):
-    def __init__(self, data_source, ticker, positions_manager=None):
-        super().__init__(positions_manager)
+    def __init__(self, broker, ticker):
+        super().__init__(broker.positions_manager)
         self.name = "strategy_scalping"
-        self.__datasource = data_source
+        self.broker = broker.name
+        self.__datasource = broker.data_source
         self.__ticker = ticker
 
         self.__datasource.subscribe_bars(self.__ticker)
@@ -56,7 +57,8 @@ class StrategyScalping(StrategyBase):
             limit_price = max(cost_basis + 0.01, current_price)
 
             # FIXME: Closing order cannot have timeout time
-            order = Order(self.name, self.__ticker, 'sell', 0.1, 120, price=limit_price)
+            order = Order(self.name, self.broker, self.__ticker, 'sell', 0.1, 120,
+                          price=limit_price)
             logger.info(f'exit position')
             return [Signal(order, True)]
 
@@ -65,7 +67,8 @@ class StrategyScalping(StrategyBase):
                 signal = self.__calc_buy_signal(data)
                 if signal:
                     price = self.__datasource.get_latest_trade(self.__ticker).price
-                    order = Order(self.name, self.__ticker, 'buy', 0.1, 120, price=price)
+                    order = Order(self.name, self.broker, self.__ticker, 'buy', 0.1, 120,
+                                  price=price)
 
                     return [Signal(order, False)]
 

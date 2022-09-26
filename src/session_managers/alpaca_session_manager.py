@@ -13,6 +13,7 @@ logger = logging.getLogger()
 
 class AlpacaSessionManager(session_manager_base.SessionManagerBase):
     def __init__(self):
+        self.name = 'alpaca_session'
         self.__session = None
         self.__stream = None
         self.__base_url = URL('https://paper-api.alpaca.markets')
@@ -28,7 +29,8 @@ class AlpacaSessionManager(session_manager_base.SessionManagerBase):
         executor.submit(self.__stream.run)
 
 
-    def login(self, key, secret):
+    def login(self, credentials):
+        key, secret = credentials
         self.__session = tradeapi.REST(key, secret, self.__base_url)
         self.__start_stream(key, secret)
 

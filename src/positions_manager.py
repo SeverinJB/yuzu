@@ -1,5 +1,5 @@
 # Copyright Yuzu Trading 2022
-# Any unauthorized usage forbidden
+# Any unauthorised usage forbidden
 
 import logging
 
@@ -8,39 +8,63 @@ logger = logging.getLogger()
 
 class PositionsManager(object):
     def __init__(self):
-        # TODO: Implement new dictionary structure.
-        self.__open_positions = {}  # {'EXECUTOR': {'TICKER': ORDER}, ...}
-        self.__pending_orders = {}  # {'EXECUTOR': {'TICKER': ORDER}, ...}
+        self.__open_positions = {}  # {'TICKER': POSITION}
+        self.__pending_orders = {}  # {'TICKER': ORDER}
 
 
-    def update_position(self, ticker, update):
-        logger.info(f"order update: {update['event']} = {update['order']}")
+    def update_order(self, event, order_update):
+        ticker = order_update['symbol']
+        logger.info(f"order update: {event} = {order_update}")
 
-        if update['event'] == 'fill':
-            position = self.get_pending_order_for_ticker(ticker).convert_to_position()
-            position.avg_entry_price = update['order']['filled_avg_price']  # #22
+        pending_order = self.get_pending_order_for_ticker(ticker)
+        open_position = self.get_open_position_for_ticker(ticker)
 
-            self.open_position(position)
+        if order_update.id == pending_order.broker_order_id:
+            if event == 'fill':
+                position = pending_order.convert_to_position()
+                position.avg_entry_price = order_update['filled_avg_price']
+                position.size = int(order_update['filled_qty'])
 
-        elif update['event'] == 'partial_fill':
-            remaining_order = self.get_pending_order_for_ticker(ticker)
-            remaining_order.size -= int(update['order']['filled_qty'])
+                if open_position:
+                    self.update_position(open_position, position)
+                else:
+                    self.open_position(position)
 
-            position = self.get_pending_order_for_ticker(ticker).convert_to_position()
-            position.size = int(update['order']['filled_qty'])
-            position.avg_entry_price = update['order']['filled_avg_price']  # #22
+            elif event == 'partial_fill':
+                remaining_order = pending_order
+                remaining_order.size -= int(order_update['filled_qty'])
 
-            self.open_position(position)
-            self.add_order(remaining_order)
+                position = pending_order.convert_to_position()
+                position.avg_entry_price = order_update['filled_avg_price']
+                position.size = int(order_update['filled_qty'])
 
-        elif update['event'] in ('canceled', 'rejected'):
-            if update['event'] == 'rejected':
-                logger.warn(f"Order rejected: current order = {update['order']}")
+                if open_position:
+                    self.update_position(open_position, position)
+                else:
+                    self.open_position(position)
 
-            self.delete_order(ticker)
+                self.add_order(remaining_order)
+
+            elif event in ('canceled', 'rejected'):
+                if event == 'rejected':
+                    logger.warn(f"Order rejected: current order = {order_update}")
+
+                self.delete_order(ticker)
+
+            else:
+                logger.warn(f"Unexpected event: {event} for {order_update}")
 
         else:
-            logger.warn(f"Unexpected event: {update['event']} for {update['order']}")
+            logger.warn(f"Unexpected update: No pending order for {order_update}")
+
+
+    def update_position(self, open_position, position):
+        if open_position.side == position.side:
+            open_position.size += position.size
+            avg_entry_price = (open_position.avg_entry_price + position.avg_entry_price)/2
+            open_position.avg_entry_price = avg_entry_price
+        else:
+            open_position.size -= position.size
 
 
     def open_position_exists_for_ticker(self, ticker):
@@ -71,6 +95,10 @@ class PositionsManager(object):
 
     def get_pending_order_for_ticker(self, ticker):
         return self.__pending_orders[ticker]
+
+
+    def get_open_positions(self):
+        return self.__open_positions
 
 
     def get_pending_orders(self):

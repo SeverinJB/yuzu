@@ -1,18 +1,16 @@
-# Copyright Burg&Biondi 2020
-# Any unauthorized usage forbidden
+# Copyright Yuzu 2022
+# Any unauthorised usage forbidden
 
 import logging
 
 from strategies.strategy_scalping import StrategyScalping
-from data_sources.alpaca_data_source import AlpacaDataSource
 
 logger = logging.getLogger()
 
 
 class StrategiesManager(object):
-    def __init__(self, session_manager, positions_manager):
-        self.__session_manager = session_manager
-        self.__positions_manager = positions_manager
+    def __init__(self, brokers_manager):
+        self.__brokers = brokers_manager.get_brokers()
         self.__strategies = self.__select_strategies()  # {'STRATEGY_NAME' : STRATEGY, ...}
 
 
@@ -20,8 +18,8 @@ class StrategiesManager(object):
         logger.info(f'Strategies Manager initiating strategies')
 
         strategies = {
-            "strategy_scalping": StrategyScalping(AlpacaDataSource(
-                self.__session_manager), 'AAPL', self.__positions_manager),
+            'strategy_scalping': StrategyScalping(self.__brokers['alpaca'], 'AAPL'),
+            # 'STRATEGY_NAME' : STRATEGY,
         }
 
         return strategies

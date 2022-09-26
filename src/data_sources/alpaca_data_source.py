@@ -1,5 +1,5 @@
 # Copyright Yuzu Trading 2022
-# Any unauthorized usage forbidden
+# Any unauthorised usage forbidden
 
 import pytz
 import logging
@@ -14,6 +14,7 @@ logger = logging.getLogger()
 class AlpacaDataSource(DataSourceBase):
     def __init__(self, session_manager):
         super().__init__(session_manager)
+        self.name = 'alpaca_data'
         self.__session = self.session_manager.get_session()
         self.__database = {}  # {'TICKER': DATAFRAME, ...}
         self.__bars = {}  # {'TICKER': [BAR_1, BAR_2, BAR_3, ...], ...}

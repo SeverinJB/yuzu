@@ -9,10 +9,10 @@ logger = logging.getLogger()
 
 
 class TradesManager(object):
-    def __init__(self, trade_executor, strategies_manager, positions_manager):
-        self.__trade_executor = trade_executor
+    def __init__(self, brokers_manager, strategies_manager, positions_aggregator):
+        self.__brokers = brokers_manager.get_brokers()
         self.__strategies_manager = strategies_manager
-        self.__positions_manager = positions_manager
+        self.__positions_aggregator = positions_aggregator
 
 
     def __now(self):
@@ -35,9 +35,10 @@ class TradesManager(object):
 
     async def __exit_positions(self, exit_orders):
         for order in exit_orders:
-            order_response = await self.__trade_executor.submit_order(order)
-            if order_response is not None:
-                self.__positions_manager.close_position(order.ticker)
+            broker = self.__brokers[order.broker]
+            order.submitted_at = self.__now()
+            order_response = await broker.trade_executor.submit_order(order)
+            return order_response
 
             # if order_response is not None:
             #     closed_size = order_response.order.size
@@ -53,16 +54,14 @@ class TradesManager(object):
 
 
     async def __enter_positions(self, entry_orders):
-        # FIXME:    Function should release ticker if submit_order failed
-        #           To achieve the above submit_order must return standardised values
         for order in entry_orders:
             ticker = order.ticker
-            if self.__positions_manager.ticker_is_busy(ticker):
+            broker = self.__brokers[order.broker].positions_manager
+            if broker.positions_manager.ticker_is_busy(ticker):
                 raise Exception("PositionsManager: Trying to open position for busy ticker!")
             else:
                 order.submitted_at = self.__now()
-                self.__positions_manager.add_order(order)
-                order_response = await self.__trade_executor.submit_order(order)
+                order_response = await broker.trade_executor.submit_order(order)
                 return order_response
 
 
@@ -89,28 +88,21 @@ class TradesManager(object):
         return signals
 
 
-    def __check_for_order_updates(self):
-        for order in list(self.__positions_manager.get_pending_orders().values()):
-            order_updates = self.__trade_executor.get_latest_order_updates(order.ticker)
-            if order_updates:  # #20
-                for update in order_updates:
-                    self.__positions_manager.update_position(order.ticker, update)
-
-
     async def __time_out_pending_orders(self):
         # FIXME:    Ensure that cancel_order response is 200 or error
         #           Cancelling orders is important and needs to be done before a ticker is freed.
         now = self.__now()
-        for order in self.__positions_manager.get_pending_orders().values():
+        for order in self.__positions_aggregator.get_pending_orders():
             submitted_at = order.submitted_at.tz_convert(tz='America/New_York')
             duration_valid = pd.Timedelta(order.valid_for_seconds, "seconds")
 
             if now - submitted_at > duration_valid:
-                self.__positions_manager.delete_order(order.ticker)
-                response = await self.__trade_executor.cancel_order(order.id)
+                broker = self.__brokers[order.broker]
+                broker.positions_manager.delete_order(order.ticker)
+                response = await broker.trade_executor.cancel_order(order.broker_order_id)
 
                 if response != 200:
-                    self.__positions_manager.add_order(order)
+                    broker.positions_manager.add_order(order)
                     raise Exception(f'TradesManager: Order was not cancelled correctly, {response}')
 
             else:
@@ -126,7 +118,6 @@ class TradesManager(object):
             #    self._submit_sell(bailout=True)
 
         else:
-            self.__check_for_order_updates()
             # await self.__time_out_pending_orders()
 
             trade_signals = await self.__collect_trade_signals()
