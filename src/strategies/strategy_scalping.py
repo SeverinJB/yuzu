@@ -29,7 +29,7 @@ class StrategyScalping(StrategyBase):
 
 
     def __calc_buy_signal(self, data):
-        mavg = data.rolling(21).mean().close.values
+        mavg = data.rolling(11).mean().close.values
         closes = data.close.values
 
         if closes[-2] < mavg[-2] and closes[-1] > mavg[-1]:
@@ -63,7 +63,7 @@ class StrategyScalping(StrategyBase):
             return [Signal(order, True)]
 
         elif not self.positions_manager.ticker_is_busy(self.__ticker) and data is not None:
-            if len(data) > 20:
+            if len(data) > 10:
                 signal = self.__calc_buy_signal(data)
                 if signal:
                     price = self.__datasource.get_latest_trade(self.__ticker).price

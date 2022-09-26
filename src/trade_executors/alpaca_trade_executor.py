@@ -49,8 +49,8 @@ class AlpacaTradeExecutor(TradeExecutorBase):
             )
             logger.info(f'submitted order {order.ticker}')
 
-            if response["id"]:
-                order.broker_order_id = response["id"]
+            if response.id:
+                order.broker_order_id = response.id
             else:
                 self.__positions_manager.delete_order(order.ticker)
 

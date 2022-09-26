@@ -19,43 +19,45 @@ class PositionsManager(object):
         pending_order = self.get_pending_order_for_ticker(ticker)
         open_position = self.get_open_position_for_ticker(ticker)
 
-        if order_update.id == pending_order.broker_order_id:
-            if event == 'fill':
-                position = pending_order.convert_to_position()
-                position.avg_entry_price = order_update['filled_avg_price']
-                position.size = int(order_update['filled_qty'])
+        if pending_order:
+            if order_update['id'] == pending_order.broker_order_id:
+                if event == 'fill':
+                    position = pending_order.convert_to_position()
+                    position.avg_entry_price = order_update['filled_avg_price']
+                    position.size = int(order_update['filled_qty'])
 
-                if open_position:
-                    self.update_position(open_position, position)
+                    if open_position:
+                        self.update_position(open_position, position)
+                    else:
+                        self.open_position(position)
+
+                elif event == 'partial_fill':
+                    remaining_order = pending_order
+                    remaining_order.size -= int(order_update['filled_qty'])
+
+                    position = pending_order.convert_to_position()
+                    position.avg_entry_price = order_update['filled_avg_price']
+                    position.size = int(order_update['filled_qty'])
+
+                    if open_position:
+                        self.update_position(open_position, position)
+                    else:
+                        self.open_position(position)
+
+                    self.add_order(remaining_order)
+
+                elif event in ('canceled', 'rejected'):
+                    if event == 'rejected':
+                        logger.warn(f"Order rejected: current order = {order_update}")
+
+                    self.delete_order(ticker)
+
                 else:
-                    self.open_position(position)
-
-            elif event == 'partial_fill':
-                remaining_order = pending_order
-                remaining_order.size -= int(order_update['filled_qty'])
-
-                position = pending_order.convert_to_position()
-                position.avg_entry_price = order_update['filled_avg_price']
-                position.size = int(order_update['filled_qty'])
-
-                if open_position:
-                    self.update_position(open_position, position)
-                else:
-                    self.open_position(position)
-
-                self.add_order(remaining_order)
-
-            elif event in ('canceled', 'rejected'):
-                if event == 'rejected':
-                    logger.warn(f"Order rejected: current order = {order_update}")
-
-                self.delete_order(ticker)
-
+                    logger.warn(f"Unexpected event: {event} for {order_update}")
             else:
-                logger.warn(f"Unexpected event: {event} for {order_update}")
-
+                logger.warn(f"Unexpected update: No pending order with this id, {order_update}")
         else:
-            logger.warn(f"Unexpected update: No pending order for {order_update}")
+            logger.warn(f"Unexpected update: No pending order for {ticker}")
 
 
     def update_position(self, open_position, position):
@@ -90,11 +92,17 @@ class PositionsManager(object):
 
 
     def get_open_position_for_ticker(self, ticker):
-        return self.__open_positions[ticker]
+        if ticker in self.__open_positions.keys():
+            return self.__open_positions[ticker]
+        else:
+            return None
 
 
     def get_pending_order_for_ticker(self, ticker):
-        return self.__pending_orders[ticker]
+        if ticker in self.__pending_orders.keys():
+            return self.__pending_orders[ticker]
+        else:
+            return None
 
 
     def get_open_positions(self):

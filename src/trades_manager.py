@@ -1,5 +1,5 @@
 # Copyright Yuzu Trading 2022
-# Any unauthorized usage forbidden
+# Any unauthorised usage forbidden
 
 import logging
 import pandas as pd
@@ -56,7 +56,7 @@ class TradesManager(object):
     async def __enter_positions(self, entry_orders):
         for order in entry_orders:
             ticker = order.ticker
-            broker = self.__brokers[order.broker].positions_manager
+            broker = self.__brokers[order.broker]
             if broker.positions_manager.ticker_is_busy(ticker):
                 raise Exception("PositionsManager: Trying to open position for busy ticker!")
             else:

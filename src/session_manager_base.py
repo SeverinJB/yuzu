@@ -1,5 +1,5 @@
-# Copyright Burg&Biondi 2020
-# Any unauthorized usage forbidden
+# Copyright Yuzu 2022
+# Any unauthorised usage forbidden
 
 class SessionManagerBase():
 	def login(self, username, password):
