@@ -36,7 +36,7 @@ class AlpacaTradeExecutor(TradeExecutorBase):
         if order.price > 1:  # #21
             order.price = round(order.price, 2)
 
-        amount = int(1000 / order.price)
+        amount = int(40000 / order.price)
 
         try:
             response = self.__session.submit_order(

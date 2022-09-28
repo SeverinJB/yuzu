@@ -51,7 +51,7 @@ class Position(object):
         self.strategy = strategy_name
         self.broker = broker_name
         self.ticker = ticker
-        self.price = price
+        self.price = price  # FIXME: Why does the position have a price?
         self.side = side
         self.size = size
         self.stop_loss = stop_loss

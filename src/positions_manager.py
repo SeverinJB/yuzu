@@ -2,6 +2,7 @@
 # Any unauthorised usage forbidden
 
 import logging
+from trade_objects import Position
 
 logger = logging.getLogger()
 
@@ -66,10 +67,15 @@ class PositionsManager(object):
     def update_position(self, open_position, position):
         if open_position.side == position.side:
             open_position.size += position.size
-            avg_entry_price = (open_position.avg_entry_price + position.avg_entry_price)/2
-            open_position.avg_entry_price = avg_entry_price
+            avg_entry_price = (float(open_position.avg_entry_price)
+                               + float(position.avg_entry_price)) / 2
+            open_position.avg_entry_price = str(avg_entry_price)
+
         else:
-            open_position.size -= position.size
+            if open_position.size == position.size:
+                self.close_position(position.ticker)
+            else:
+                open_position.size -= position.size
 
 
     def open_position_exists_for_ticker(self, ticker):
